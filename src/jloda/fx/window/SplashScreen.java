@@ -47,19 +47,18 @@ public class SplashScreen {
     public final Stage stage;
 
     private static String versionString;
-    private static String imageResourceName;
     private static SplashScreen instance;
 
     public static SplashScreen getInstance() {
         if (instance == null)
-            instance = new SplashScreen();
+            instance = new SplashScreen(null);
         return instance;
     }
 
     /**
      * constructor
      */
-    private SplashScreen() {
+    private SplashScreen(Image image) {
         stage = new Stage(StageStyle.UNDECORATED);
         stage.setResizable(false);
 
@@ -67,7 +66,6 @@ public class SplashScreen {
         final Scene scene = new Scene(stackPane);
         stage.setScene(scene);
 
-        final Image image = ResourceManagerFX.getImage(imageResourceName);
         if (image != null) {
             final ImageView imageView = new ImageView(image);
             imageView.setScaleX(0.5);
@@ -89,28 +87,17 @@ public class SplashScreen {
             stackPane.getChildren().add(anchorPane);
         }
 
-        scene.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent e) {
-                stage.hide();
-            }
-        });
+        scene.setOnMouseClicked(e -> stage.hide());
 
-        stage.focusedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> c, Boolean o, Boolean n) {
-                if (!n)
-                    stage.hide();
-            }
+        stage.focusedProperty().addListener((c, o, n) -> {
+            if (!n)
+                stage.hide();
         });
     }
 
     public static void setImageResourceName(String name) {
-        imageResourceName = name;
-    }
-
-    public static String getImageResourceName() {
-        return imageResourceName;
+        final Image image = ResourceManagerFX.getImage(name);
+        instance = new SplashScreen(image);
     }
 
     public static String getVersionString() {

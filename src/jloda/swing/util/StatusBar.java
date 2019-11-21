@@ -19,6 +19,8 @@
 
 package jloda.swing.util;
 
+import jloda.util.ProgramProperties;
+
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -89,19 +91,16 @@ public class StatusBar extends JPanel {
         this.add(splitPane2, BorderLayout.CENTER);
 
         if (showMemoryUsage) {
-            setText3("------------");
-            text3Panel.add(text3);
-            this.add(Box.createHorizontalStrut(10), BorderLayout.EAST);
-
-            changeListener = new ChangeListener() {
-                public void stateChanged(ChangeEvent changeEvent) {
-                    setText3(changeEvent.getSource().toString());
-                }
-            };
-            MemoryUsageManager.addChangeListener(changeListener);
-        } else {
-            changeListener = null;
+            changeListener=changeEvent -> setText3(changeEvent.getSource().toString());
+            SwingUtilities.invokeLater(() -> {
+                setText3("------------");
+                text3Panel.add(text3);
+                this.add(Box.createHorizontalStrut(10), BorderLayout.EAST);
+                MemoryUsageManager.addChangeListener(changeListener);
+            });
         }
+        else
+            changeListener=null;
     }
 
     /**

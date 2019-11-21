@@ -22,8 +22,8 @@ package jloda.swing.message;
 
 import jloda.swing.find.SearchManager;
 import jloda.swing.util.Alert;
-import jloda.swing.util.ProgramProperties;
 import jloda.util.Basic;
+import jloda.util.ProgramProperties;
 
 import javax.swing.*;
 import java.awt.*;
@@ -83,6 +83,8 @@ public class MessageWindow {
         frame = new JFrame();
         if (icon != null)
             frame.setIconImage(icon.getImage());
+        frame.setIconImages(ProgramProperties.getProgramIconImages());
+
         frame.setJMenuBar(menuBar);
         frame.setSize(400, 200);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);

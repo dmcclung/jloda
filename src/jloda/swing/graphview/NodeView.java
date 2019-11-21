@@ -28,7 +28,7 @@ package jloda.swing.graphview;
 
 import jloda.swing.util.BasicSwing;
 import jloda.swing.util.Geometry;
-import jloda.swing.util.ProgramProperties;
+import jloda.util.ProgramProperties;
 import jloda.util.parse.NexusStreamParser;
 
 import java.awt.*;
@@ -41,8 +41,6 @@ import java.io.Writer;
 final public class NodeView extends ViewBase implements Cloneable {
     private int height = 2;
     private int width = 2;
-
-    private final int GAPSIZE = 2; // gap between edge of node and start of edge
 
     private Color borderColor = null;
     private NodeShape nodeShape = NodeShape.Oval;
@@ -69,7 +67,7 @@ final public class NodeView extends ViewBase implements Cloneable {
     public static Writer descriptionWriter = null;
 
     /**
-     * Construct a node view.
+     * Construct a node tree.
      */
     public NodeView() {
         labelLayout = LAYOUT;
@@ -86,7 +84,7 @@ final public class NodeView extends ViewBase implements Cloneable {
     }
 
     /**
-     * copies the values of the source node view
+     * copies the values of the source node tree
      *
      * @param src
      */
@@ -98,6 +96,8 @@ final public class NodeView extends ViewBase implements Cloneable {
         width = src.width;
         nodeShape = src.nodeShape;
         fixedSize = src.getFixedSize();
+        borderColor=src.getBorderColor();
+        image=src.image;
     }
 
     /**
@@ -163,6 +163,8 @@ final public class NodeView extends ViewBase implements Cloneable {
                 p.y = apt.y;
             }
         } else {
+            // gap between edge of node and start of edge
+            int GAPSIZE = 2;
             int radius = Math.max(radius1, radius2) + GAPSIZE;
             double dist = apt.distance(bpt);
             if (dist == 0)
@@ -253,7 +255,7 @@ final public class NodeView extends ViewBase implements Cloneable {
      * Sets the node shape.
      *
      * @param a int
-     *  @deprecated use setNodeShape
+     *  Better: use setNodeShape
      */
     public void setShape(byte a) {
         nodeShape = NodeShape.values()[a];
@@ -263,7 +265,7 @@ final public class NodeView extends ViewBase implements Cloneable {
      * Gets the node shape.
      *
      * @return the shape
-     * @deprecated use getNodeShape
+     * Better: use getNodeShape
      */
     public byte getShape() {
         return (byte) nodeShape.ordinal();
@@ -482,7 +484,7 @@ final public class NodeView extends ViewBase implements Cloneable {
         if (location == null)
             return;
 
-        if (labelColor != null && label != null && label.length() > 0) {
+        if (labelVisible && labelColor != null && label != null && label.length() > 0) {
             //labelShape = null;
             //gc.setColor(Color.WHITE);
             //gc.fill(getLabelRect(trans));
@@ -515,7 +517,7 @@ final public class NodeView extends ViewBase implements Cloneable {
 
                             // save current transform:
                             AffineTransform saveTransform = gc.getTransform();
-                            // a vertical phylogram view
+                        // a vertical phylogram tree
 
                             /*
                             AffineTransform localTransform =  gc.getTransform();
@@ -758,7 +760,7 @@ final public class NodeView extends ViewBase implements Cloneable {
     }
 
     /**
-     * writes this node view
+     * writes this node tree
      *
      * @param w
      */
@@ -768,7 +770,7 @@ final public class NodeView extends ViewBase implements Cloneable {
     }
 
     /**
-     * gets a string representation of this node view, including coordinates
+     * gets a string representation of this node tree, including coordinates
      *
      * @return string representation
      */
@@ -777,7 +779,7 @@ final public class NodeView extends ViewBase implements Cloneable {
     }
 
     /**
-     * gets a string representation of this node view
+     * gets a string representation of this node tree
      *
      * @param withCoordinates show coordinates as well?
      * @return string representation
@@ -788,7 +790,7 @@ final public class NodeView extends ViewBase implements Cloneable {
 
 
     /**
-     * writes this node view
+     * writes this node tree
      *
      * @param w
      * @param previousNV if not null, only write those fields that differ from the values in previousNV
@@ -799,7 +801,7 @@ final public class NodeView extends ViewBase implements Cloneable {
     }
 
     /**
-     * gets a string representation of this node view
+     * gets a string representation of this node tree
      *
      * @param previousNV if not null, only write those fields that differ from the values in previousNV
      * @return string representation
@@ -809,7 +811,7 @@ final public class NodeView extends ViewBase implements Cloneable {
     }
 
     /**
-     * gets a string representation of this node view
+     * gets a string representation of this node tree
      *
      * @param previousNV if not null, only write those fields that differ from the values in previousNV
      * @return string representation
@@ -888,7 +890,7 @@ final public class NodeView extends ViewBase implements Cloneable {
     }
 
     /**
-     * reads a node view from a line
+     * reads a node tree from a line
      *
      * @param tokens
      * @param prevNV this must be !=null, for example can be set to graphView.defaultNodeView

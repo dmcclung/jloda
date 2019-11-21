@@ -1,5 +1,5 @@
 /*
- *  UndoManager.java Copyright (C) 2019 Daniel H. Huson
+ * UndoManager.java Copyright (C) 2019. Daniel H. Huson
  *
  *  (Some files contain contributions from other authors, who are then mentioned separately.)
  *
@@ -27,19 +27,20 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 /**
- * Command manager
+ * Undo/redo manager
  * Daniel Huson, 12.2017
  */
 public class UndoManager {
     private final ObservableList<UndoableRedoableCommand> undoStack = FXCollections.observableArrayList();
     private final ObservableList<UndoableRedoableCommand> redoStack = FXCollections.observableArrayList();
 
+    private final IntegerProperty undoStackSize = new SimpleIntegerProperty(0);
+
     private final StringProperty undoName = new SimpleStringProperty("Undo");
     private final StringProperty redoName = new SimpleStringProperty("Redo");
 
-    private final IntegerProperty undoStackSize = new SimpleIntegerProperty(0);
-    private final IntegerProperty redoStackSize = new SimpleIntegerProperty(0);
-
+    private final BooleanProperty undoable = new SimpleBooleanProperty(false);
+    private final BooleanProperty redoable = new SimpleBooleanProperty(false);
 
     private final BooleanProperty isPerformingUndoOrRedo = new SimpleBooleanProperty(false);
 
@@ -49,14 +50,13 @@ public class UndoManager {
      * default constructor
      */
     public UndoManager() {
-        undoStack.addListener((InvalidationListener) (e) -> {
-            undoName.set(undoStack.size() > 0 ? "Undo " + peek(undoStack).getName() : "Undo");
-            undoStackSize.set(undoStack.size());
-        });
-        redoStack.addListener((InvalidationListener) (e) -> {
-            redoName.set(redoStack.size() > 0 ? "Redo " + peek(redoStack).getName() : "Redo");
-            redoStackSize.set(redoStack.size());
-        });
+        undoStack.addListener((InvalidationListener) (e) -> undoName.set(undoStack.size() > 0 ? "Undo " + peek(undoStack).getName() : "Undo"));
+        redoStack.addListener((InvalidationListener) (e) -> redoName.set(redoStack.size() > 0 ? "Redo " + peek(redoStack).getName() : "Redo"));
+
+        undoStackSize.bind(Bindings.size(undoStack));
+
+        undoable.bind(Bindings.isNotEmpty(undoStack));
+        redoable.bind(Bindings.isNotEmpty(redoStack));
     }
 
     /**
@@ -65,7 +65,6 @@ public class UndoManager {
     public void clear() {
         undoStack.clear();
         redoStack.clear();
-
     }
 
     /**
@@ -122,14 +121,6 @@ public class UndoManager {
         }
     }
 
-    public ReadOnlyIntegerProperty undoStackSizeProperty() {
-        return undoStackSize;
-    }
-
-    public ReadOnlyIntegerProperty redoStackSizeProperty() {
-        return redoStackSize;
-    }
-
     /**
      * undo the current undoable command
      *
@@ -162,7 +153,7 @@ public class UndoManager {
         if (redoStack.size() == 0)
             throw new IllegalStateException("Redo stack empty");
         final UndoableRedoableCommand command = pop(redoStack);
-        ;
+
         if (command.isUndoable())
             push(command, undoStack);
         else
@@ -175,16 +166,20 @@ public class UndoManager {
         }
     }
 
-    public ReadOnlyBooleanProperty canUndoProperty() {
-        final BooleanProperty canUndo = new SimpleBooleanProperty();
-        canUndo.bind(Bindings.isNotEmpty(undoStack).and(isPerformingUndoOrRedo.not()));
-        return canUndo;
+    public ReadOnlyBooleanProperty undoableProperty() {
+        return undoable;
     }
 
-    public ReadOnlyBooleanProperty canRedoProperty() {
-        final BooleanProperty canRedo = new SimpleBooleanProperty();
-        canRedo.bind(Bindings.isNotEmpty(redoStack).and(isPerformingUndoOrRedo.not()));
-        return canRedo;
+    public boolean isUndoable() {
+        return undoable.get();
+    }
+
+    public ReadOnlyBooleanProperty redoableProperty() {
+        return redoable;
+    }
+
+    public boolean isRedoable() {
+        return redoable.get();
     }
 
     /**
@@ -229,13 +224,21 @@ public class UndoManager {
         return stack.get(stack.size() - 1);
     }
 
+    public int getUndoStackSize() {
+        return undoStackSize.get();
+    }
+
+    public ReadOnlyIntegerProperty undoStackSizeProperty() {
+        return undoStackSize;
+    }
+
     /**
      * an undoable
      */
     class UndoableApply extends UndoableRedoableCommand {
         private final Runnable runnable;
 
-        public UndoableApply(Runnable runnable) {
+        UndoableApply(Runnable runnable) {
             super("Apply");
             this.runnable = runnable;
         }
@@ -254,5 +257,4 @@ public class UndoManager {
             runnable.run();
         }
     }
-
 }

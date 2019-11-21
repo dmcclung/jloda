@@ -34,7 +34,7 @@ import java.util.*;
 public class PhyloTreeView extends GraphView {
 
     /**
-     * Constructs a view of a phylogentic tree.
+     * Constructs a tree of a phylogentic tree.
      *
      * @param tree PhyloTree
      */
@@ -43,7 +43,7 @@ public class PhyloTreeView extends GraphView {
     }
 
     /**
-     * Constructs a view of a phylogentic tree.
+     * Constructs a tree of a phylogentic tree.
      *
      * @param tree        PhyloTree
      * @param doEmbedding compute an embedding of the tree?
@@ -53,7 +53,7 @@ public class PhyloTreeView extends GraphView {
     }
 
     /**
-     * Constructs a view of a phylogentic tree. Computes an embedding of the tree.
+     * Constructs a tree of a phylogentic tree. Computes an embedding of the tree.
      *
      * @param tree PhyloTree
      * @param w    int
@@ -65,7 +65,7 @@ public class PhyloTreeView extends GraphView {
     }
 
     /**
-     * Constructs a view of a phylogentic tree. Optinally computes an embedding of the tree.
+     * Constructs a tree of a phylogentic tree. Optinally computes an embedding of the tree.
      *
      * @param tree        PhyloTree
      * @param w           int
@@ -200,7 +200,7 @@ public class PhyloTreeView extends GraphView {
     }
 
     /**
-     * update view of nodes and edges
+     * update tree of nodes and edges
      */
     public void resetViews() {
         PhyloTree G = (PhyloTree) getGraph();
@@ -355,19 +355,11 @@ public class PhyloTreeView extends GraphView {
                 String first = sortTreeAlphabeticallyRec(e.getTarget());
                 list.add(new Pair<>(first, e));
             }
-            list.sort(new Comparator<Pair<String, Edge>>() {
-                @Override
-                public int compare(Pair<String, Edge> a, Pair<String, Edge> b) {
-                    int compare = a.getFirst().compareTo(b.getFirst());
-                    if (compare != 0)
-                        return compare;
-                    else if (a.getSecond().getId() < b.getSecond().getId())
-                        return -1;
-                    else if (a.getSecond().getId() > b.getSecond().getId())
-                        return 1;
-                    else
-                        return 0;
-                }
+            list.sort((a, b) -> {
+                int compare = a.getFirst().compareTo(b.getFirst());
+                if (compare != 0)
+                    return compare;
+                else return Integer.compare(a.getSecond().getId(), b.getSecond().getId());
             });
             final ArrayList<Edge> edges = new ArrayList<>(v.getDegree());
             for (Pair<String, Edge> pair : list) {
@@ -377,7 +369,7 @@ public class PhyloTreeView extends GraphView {
                 edges.add(v.getFirstInEdge());
             v.rearrangeAdjacentEdges(edges);
 
-            if (getLabel(v) != null && getLabel(v).compareTo(list.get(0).getFirst()) == -1)
+            if (getLabel(v) != null && getLabel(v).compareTo(list.get(0).getFirst()) < 0)
                 return getLabel(v);
             else
                 return list.get(0).getFirst();

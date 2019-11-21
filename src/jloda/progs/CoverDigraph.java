@@ -50,7 +50,6 @@ public class CoverDigraph {
     private int ntax;
     private GeneOccurrences[] genes;
     private PhyloSplitsGraph graph;
-    private String[] tax2name;
 
     /**
      * read the gene sets from a stream.
@@ -69,7 +68,7 @@ public class CoverDigraph {
         ntax = Array.getLength(data[0]) - 1;
         int ngenes = data[1][1].length();
 
-        tax2name = new String[ntax + 1];
+        String[] tax2name = new String[ntax + 1];
         genes = new GeneOccurrences[ngenes];
         for (int c = 0; c < genes.length; c++) {
 
@@ -133,10 +132,10 @@ public class CoverDigraph {
 
         for (int i = 0; i < genes.length; i++) {
             // prepare label
-            String label = "" + genes[i].label + ":";
+            StringBuilder label = new StringBuilder("" + genes[i].label + ":");
             for (int t = 1; t <= ntax; t++)
                 if (genes[i].taxa.get(t))
-                    label += " " + t;
+                    label.append(" ").append(t);
 
             // check whether gene has same profile as a previous one:
             boolean found = false;
@@ -155,7 +154,7 @@ public class CoverDigraph {
 
                 Node v = graph.newNode(genes[i].taxa);
 
-                graph.setLabel(v, label);
+                graph.setLabel(v, label.toString());
                 gene2node[i] = v;
                 for (int j = i - 1; j >= 0; j--) {
                     Node w = gene2node[j];
@@ -231,7 +230,7 @@ public class CoverDigraph {
     /**
      * run the program
      */
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         CommandLineOptions options = new CommandLineOptions(args);
         options.setDescription("CoverDigraph" +
                 "- compute cover digraph from gene content");

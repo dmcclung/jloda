@@ -20,6 +20,7 @@
 package jloda.swing.util;
 
 import jloda.util.Basic;
+import jloda.util.ProgramProperties;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -49,12 +50,12 @@ public class ChooseFileDialog {
     public static File chooseFileToOpen(Component parent, File lastOpenFile, FileFilter fileFilter, FilenameFilter fileNameFilter, ActionEvent event, String message) {
         File file = null;
 
-        if (ProgramProperties.isMacOS() && (event == null || (event.getModifiers() & Event.SHIFT_MASK) == 0)) {
+        if (ProgramProperties.isMacOS() && (event == null || (event.getModifiers() & ActionEvent.SHIFT_MASK) == 0)) {
                 //Use native file dialog on mac
                 java.awt.FileDialog dialog;
-                if (parent != null && parent instanceof JFrame)
+            if (parent instanceof JFrame)
                     dialog = new java.awt.FileDialog((JFrame) parent, message, java.awt.FileDialog.LOAD);
-                else if (parent != null && parent instanceof Dialog)
+            else if (parent instanceof Dialog)
                     dialog = new java.awt.FileDialog((Dialog) parent, message, java.awt.FileDialog.LOAD);
                 else
                     dialog = new java.awt.FileDialog((JFrame) null, message, java.awt.FileDialog.LOAD);
@@ -107,17 +108,17 @@ public class ChooseFileDialog {
         final LinkedList<File> list = new LinkedList<>();
 
         final JFrame frame;
-        if (parent != null && parent instanceof JFrame)
+        if (parent instanceof JFrame)
             frame = (JFrame) parent;
         else
             frame = null;
 
-        if (ProgramProperties.isMacOS() && (event == null || (event.getModifiers() & Event.SHIFT_MASK) == 0)) {
+        if (ProgramProperties.isMacOS() && (event == null || (event.getModifiers() & ActionEvent.SHIFT_MASK) == 0)) {
             //Use native file dialog on mac
             java.awt.FileDialog dialog;
-            if (parent != null && parent instanceof JFrame)
+            if (parent instanceof JFrame)
                 dialog = new java.awt.FileDialog((JFrame) parent, message, java.awt.FileDialog.LOAD);
-            else if (parent != null && parent instanceof Dialog)
+            else if (parent instanceof Dialog)
                 dialog = new java.awt.FileDialog((Dialog) parent, message, java.awt.FileDialog.LOAD);
             else
                 dialog = new java.awt.FileDialog((JFrame) null, message, java.awt.FileDialog.LOAD);
@@ -192,12 +193,12 @@ public class ChooseFileDialog {
 
         boolean okToWrite = false;
         while (!okToWrite) {
-            if (ProgramProperties.isMacOS() && (event == null || (event.getModifiers() & Event.SHIFT_MASK) == 0)) {
+            if (ProgramProperties.isMacOS() && (event == null || (event.getModifiers() & ActionEvent.SHIFT_MASK) == 0)) {
                 //Use native file dialog on mac
                 java.awt.FileDialog dialog;
-                if (parent != null && parent instanceof JFrame)
+                if (parent instanceof JFrame)
                     dialog = new java.awt.FileDialog((JFrame) parent, message, java.awt.FileDialog.SAVE);
-                else if (parent != null && parent instanceof Dialog)
+                else if (parent instanceof Dialog)
                     dialog = new java.awt.FileDialog((Dialog) parent, message, java.awt.FileDialog.SAVE);
                 else
                     dialog = new java.awt.FileDialog((JFrame) null, message, java.awt.FileDialog.SAVE);
@@ -260,7 +261,9 @@ public class ChooseFileDialog {
                 }
                 if (file.exists()) {
                     switch (
-                            JOptionPane.showConfirmDialog(parent, "This file already exists. Overwrite the existing file?", "Save File", JOptionPane.YES_NO_CANCEL_OPTION)) {
+                            JOptionPane.showConfirmDialog(parent, "This file already exists. Overwrite the existing file?", "Save File",
+                                    JOptionPane.YES_NO_CANCEL_OPTION,
+                                    JOptionPane.QUESTION_MESSAGE, ProgramProperties.getProgramIcon())) {
                         case JOptionPane.YES_OPTION:
                             okToWrite = true;
                             break;

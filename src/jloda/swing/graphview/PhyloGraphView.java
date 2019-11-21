@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.*;
 
 /**
- * PhyloGraph view
+ * PhyloGraph tree
  * Daniel Huson, 2002
  */
 
@@ -44,7 +44,7 @@ public class PhyloGraphView extends GraphView {
     private boolean inEdgeClickSelection = false;
 
     /**
-     * Constructs a view of a phylogenetic graph, setting
+     * Constructs a tree of a phylogenetic graph, setting
      * window width and height to 400.
      *
      * @param phyloGraph the PhyloGraph
@@ -61,7 +61,7 @@ public class PhyloGraphView extends GraphView {
     }
 
     /**
-     * Constructs a view of a phylogentic G.
+     * Constructs a tree of a phylogentic G.
      *
      * @param phyloGraph the PhyloGraph
      * @param w          the width
@@ -128,7 +128,7 @@ public class PhyloGraphView extends GraphView {
     }
 
     /**
-     * Constructs a view of a phylogentic tree.
+     * Constructs a tree of a phylogentic tree.
      *
      * @param tree PhyloTree
      */
@@ -137,7 +137,7 @@ public class PhyloGraphView extends GraphView {
     }
 
     /**
-     * Constructs a view of a phylogentic tree.
+     * Constructs a tree of a phylogentic tree.
      *
      * @param tree PhyloTree
      */
@@ -187,7 +187,7 @@ public class PhyloGraphView extends GraphView {
     }
 
     /**
-     * update view of nodes and edges
+     * update tree of nodes and edges
      */
     public void resetViews() {
         PhyloSplitsGraph G = (PhyloSplitsGraph) getGraph();
@@ -287,7 +287,7 @@ public class PhyloGraphView extends GraphView {
                 graph.getAllSeparators(splitId, one, null, new NodeSet(graph), separators);
                 if (updateNodePositions) {
                         // move all the nodes on one side of the split:
-                        Pair separator = (Pair) separators.get(0);
+                    Pair separator = separators.get(0);
                         Node v = (Node) separator.getFirst();
                         Edge e = (Edge) separator.getSecond();
                         Node w = graph.getOpposite(v, e);

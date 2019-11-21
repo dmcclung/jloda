@@ -20,8 +20,8 @@
 package jloda.swing.export;
 
 import jloda.swing.util.ChooseFileDialog;
-import jloda.swing.util.ProgramProperties;
 import jloda.util.Basic;
+import jloda.util.ProgramProperties;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -263,7 +263,8 @@ public class ExportImageDialog extends JDialog {
         if (file.exists()) {
             switch (
                     JOptionPane.showConfirmDialog(this,
-                            "This file already exists. Overwrite the existing file?", "Save File", JOptionPane.YES_NO_CANCEL_OPTION)) {
+                            "This file already exists. Overwrite the existing file?", "Save File", JOptionPane.YES_NO_CANCEL_OPTION,
+                            JOptionPane.QUESTION_MESSAGE, ProgramProperties.getProgramIcon())) {
                 case JOptionPane.YES_OPTION:
                     return true;
                 case JOptionPane.NO_OPTION:

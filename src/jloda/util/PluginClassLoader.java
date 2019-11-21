@@ -65,23 +65,22 @@ public class PluginClassLoader {
      */
     public static <C, D> List<C> getInstances(String className, Class<C> clazz1, Class<D> clazz2, String... packageNames) {
         final List<C> plugins = new LinkedList<>();
-        final LinkedList<String> packageNameQueue = new LinkedList<>();
-        packageNameQueue.addAll(Arrays.asList(packageNames));
+        final LinkedList<String> packageNameQueue = new LinkedList<>(Arrays.asList(packageNames));
         while (packageNameQueue.size() > 0) {
             try {
                 final String packageName = packageNameQueue.removeFirst();
-                final String[] resources = ResourceUtils.fetchResources(packageName);
+                final String[] resources = ResourceUtils.fetchResources(clazz1, packageName);
 
                 for (int i = 0; i != resources.length; ++i) {
                     // System.err.println("Resource: " + resources[i]);
                     if (resources[i].endsWith(".class")) {
                         try {
                             resources[i] = resources[i].substring(0, resources[i].length() - 6);
-                            final Class<C> c = ResourceUtils.classForName(packageName.concat(".").concat(resources[i]));
+                            final Class<C> c = classForName(clazz1, packageName.concat(".").concat(resources[i]));
                             if (!c.isInterface() && !Modifier.isAbstract(c.getModifiers()) && clazz1.isAssignableFrom(c) && (clazz2 == null || clazz2.isAssignableFrom(c))
                                     && (className == null || Basic.getShortName(c).equalsIgnoreCase(className))) {
                                 try {
-                                    plugins.add(c.newInstance());
+                                    plugins.add(c.getConstructor().newInstance());
                                 } catch (InstantiationException ex) {
                                     //Basic.caught(ex);
                                 }
@@ -106,6 +105,17 @@ public class PluginClassLoader {
             }
         }
         return plugins;
+    }
+
+    /**
+     * Get a class instance for the given fully qualified classname.
+     *
+     * @param name
+     * @return
+     * @throws ClassNotFoundException
+     */
+    public static <T> Class classForName(Class<T> clazz, String name) throws ClassNotFoundException {
+        return clazz.getClassLoader().loadClass(name);
     }
 }
 

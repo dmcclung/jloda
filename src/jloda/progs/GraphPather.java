@@ -25,7 +25,6 @@ import jloda.util.UsageException;
 
 import java.io.*;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -106,19 +105,12 @@ public class GraphPather {
             edges[count++] = e;
         }
 
-        Arrays.sort(edges, new Comparator<Edge>() {
-            public int compare(Edge edge1, Edge edge2) {
-                if ((Float) edge1.getInfo() < (Float) edge2.getInfo())
-                    return -1;
-                else if ((Float) edge1.getInfo() > (Float) edge2.getInfo())
-                    return 1;
-                else if (edge1.getId() < edge2.getId())
-                    return -1;
-                else if (edge1.getId() > edge2.getId())
-                    return 1;
-                else
-                    return 0;
-            }
+        Arrays.sort(edges,(edge1, edge2) -> {
+            if ((Integer)edge1.getInfo() <(Integer)edge2.getInfo())
+                return -1;
+            else if ((Integer)edge1.getInfo() > (Integer)edge2.getInfo())
+                return 1;
+            else return Integer.compare(edge1.getId(), edge2.getId());
         });
         System.err.println("done (" + edges.length + ")");
 

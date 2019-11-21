@@ -176,16 +176,16 @@ public abstract class CommandBase {
             NexusStreamParser np = new NexusStreamParser(new StringReader(syntax));
             np.setSquareBracketsSurroundComments(false);
 
-            String startsWith = "";
+            StringBuilder startsWith = new StringBuilder();
             String token;
             try {
                 while (np.peekNextToken() != NexusStreamParser.TT_EOF) {
                     token = np.getWordRespectCase();
                     if (token == null || token.startsWith("[") || token.startsWith("{") || token.startsWith("<") || token.equals(";"))
                         break;
-                    startsWith += " " + token;
+                    startsWith.append(" ").append(token);
                 }
-                return startsWith;
+                return startsWith.toString();
             } catch (IOException e) {
                 Basic.caught(e);
                 return null;
@@ -265,11 +265,7 @@ public abstract class CommandBase {
         actionPerformed(ev);
         if (getAutoRepeatInterval() > 0) {
             if (autoRepeatTimer == null) {
-                autoRepeatTimer = new Timer(getAutoRepeatInterval(), new ActionListener() {
-                    public void actionPerformed(ActionEvent evt) {
-                        CommandBase.this.actionPerformed(null);
-                    }
-                });
+                autoRepeatTimer = new Timer(getAutoRepeatInterval(), evt -> CommandBase.this.actionPerformed(null));
                 autoRepeatTimer.setRepeats(true);
                 JComponent component = (JComponent) ev.getSource();
                 component.addMouseListener(new MouseAdapter() {

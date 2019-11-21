@@ -19,12 +19,14 @@
 
 package jloda.graph;
 
+import java.util.Arrays;
+
 /**
  * edge float array
  * Daniel Huson, 11.2017
  */
 public class EdgeFloatArray extends GraphBase implements EdgeAssociation<Float> {
-    private float data[];
+    private float[] data;
     private boolean isClear = true;
 
     /**
@@ -66,8 +68,7 @@ public class EdgeFloatArray extends GraphBase implements EdgeAssociation<Float> 
      * Clear all entries.
      */
     public void clear() {
-        for (int i = 0; i < data.length; i++)
-            data[i] = 0;
+        Arrays.fill(data, 0);
         isClear = true;
     }
 

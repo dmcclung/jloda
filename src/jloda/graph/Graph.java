@@ -468,7 +468,7 @@ public class Graph extends GraphBase {
      * @param v the node
      * @param e the edge
      * @return the opposite node
-     * @deprecated use v.getOpposite(e) or e.getOpposite(v)
+     * Better: use v.getOpposite(e) or e.getOpposite(v)
      */
     public Node getOpposite(Node v, Edge e) {
         checkOwner(e);
@@ -480,7 +480,7 @@ public class Graph extends GraphBase {
      *
      * @param v the node
      * @return the first adjacent edge
-     *  @deprecated use v.getFirstAdjacentEdge()
+     *  Better: use v.getFirstAdjacentEdge()
      */
     public Edge getFirstAdjacentEdge(Node v) {
         checkOwner(v);
@@ -492,7 +492,7 @@ public class Graph extends GraphBase {
      *
      * @param v the node
      * @return the last adjacent edge
-     * @deprecated use v.getLastAdjacentEdge()
+     * Better: use v.getLastAdjacentEdge()
      */
     public Edge getLastAdjacentEdge(Node v) {
         checkOwner(v);
@@ -506,7 +506,7 @@ public class Graph extends GraphBase {
      * @param e the edge
      * @param v the node
      * @return the successor of edge adjacent to v
-     *  @deprecated use v.getNextAdjacentEdge(e)
+     *  Better: use v.getNextAdjacentEdge(e)
      */
     public Edge getNextAdjacentEdge(Edge e, Node v) {
         checkOwner(v);
@@ -519,7 +519,7 @@ public class Graph extends GraphBase {
      * @param e the edge
      * @param v the node
      * @return the predecessor of edge adjacent to v
-     *  @deprecated use v.getPrevAdjacentEdge(e)
+     *  Better: use v.getPrevAdjacentEdge(e)
      */
     public Edge getPrevAdjacentEdge(Edge e, Node v) {
         checkOwner(v);
@@ -532,7 +532,7 @@ public class Graph extends GraphBase {
      * @param e the edge
      * @param v the node
      * @return the cyclic successor of edge adjacent to v
-     *  @deprecated use v.getNextAdjacentEdgeCyclic(e)
+     *  Better: use v.getNextAdjacentEdgeCyclic(e)
      */
     public Edge getNextAdjacentEdgeCyclic(Edge e, Node v) {
         checkOwner(v);
@@ -545,7 +545,7 @@ public class Graph extends GraphBase {
      * @param e the edge
      * @param v the node
      * @return the cyclic predecessor of edge adjacent to v
-     *  @deprecated use v.getPrevAdjacentEdgeCyclic(e)
+     *  Better: use v.getPrevAdjacentEdgeCyclic(e)
      */
     public Edge getPrevAdjacentEdgeCyclic(Edge e, Node v) {
         checkOwner(v);
@@ -676,7 +676,7 @@ public class Graph extends GraphBase {
      *
      * @param e the edge
      * @return the source of e
-     * @deprecated use e.getSource()
+     * Better: use e.getSource()
      */
     public Node getSource(Edge e) {
         checkOwner(e);
@@ -688,7 +688,7 @@ public class Graph extends GraphBase {
      *
      * @param e the edge
      * @return the target of e
-     * @deprecated use e.getTarget()
+     * Better: use e.getTarget()
      */
     public Node getTarget(Edge e) {
         checkOwner(e);
@@ -699,7 +699,7 @@ public class Graph extends GraphBase {
      * Get the degree of node v.
      *
      * @return the degree
-     * @deprecated use v.getDegree()
+     * Better: use v.getDegree()
      */
     public int getDegree(Node v) {
         checkOwner(v);
@@ -710,7 +710,7 @@ public class Graph extends GraphBase {
      * Get the in-degree of node v.
      *
      * @return the in-degree
-     * @deprecated use v.getInDegree()
+     * Better: use v.getInDegree()
      */
     public int getInDegree(Node v) {
         checkOwner(v);
@@ -721,7 +721,7 @@ public class Graph extends GraphBase {
      * Get the out-degree of node v.
      *
      * @return the out-degree
-     * @deprecated use v.getOutDegree()
+     * Better: use v.getOutDegree()
      */
     public int getOutDegree(Node v) {
         checkOwner(v);
@@ -732,10 +732,10 @@ public class Graph extends GraphBase {
      * Get an iterator over all edges
      *
      * @return edge iterator
-     * @deprecated use edges()
+     * Better: use edges()
      */
     public Iterator<Edge> edgeIterator() {
-        return new IteratorAdapter<Edge>() {
+        return new IteratorAdapter<>() {
             private Edge e = getFirstEdge();
 
             protected Edge findNext() throws NoSuchElementException {
@@ -756,7 +756,7 @@ public class Graph extends GraphBase {
      * @return edge iterator
      */
     public Iterator<Edge> edgeIteratorIncludingHidden() {
-        return new IteratorAdapter<Edge>() {
+        return new IteratorAdapter<>() {
             private Edge e = firstEdge;
 
             protected Edge findNext() throws NoSuchElementException {
@@ -776,10 +776,10 @@ public class Graph extends GraphBase {
      * Get an iterator over all nodes
      *
      * @return node iterator
-     * @deprecated use nodes()
+     * Better: use nodes()
      */
     public Iterator<Node> nodeIterator() {
-        return new IteratorAdapter<Node>() {
+        return new IteratorAdapter<>() {
             private Node v = getFirstNode();
 
             protected Node findNext() throws NoSuchElementException {
@@ -804,7 +804,7 @@ public class Graph extends GraphBase {
      * @return node iterator
      */
     public Iterator<Node> nodeIteratorIncludingHidden() {
-        return new IteratorAdapter<Node>() {
+        return new IteratorAdapter<>() {
             private Node v = firstNode;
 
             protected Node findNext() throws NoSuchElementException {
@@ -828,7 +828,7 @@ public class Graph extends GraphBase {
      *
      * @param v node
      * @return all nodes adjacent to v
-     * @deprecated use v.adjacentNodes()
+     * Better: use v.adjacentNodes()
      */
     public Iterable<Node> adjacentNodes(Node v) {
         return v.adjacentNodes();
@@ -839,7 +839,7 @@ public class Graph extends GraphBase {
      *
      * @param v node
      * @return all edges adjacent to v
-     * @deprecated use v.adjacentEdges()
+     * Better: use v.adjacentEdges()
      */
     public Iterable<Edge> adjacentEdges(Node v) {
         return v.adjacentEdges();
@@ -850,7 +850,7 @@ public class Graph extends GraphBase {
      *
      * @param v node
      * @return all in-edges adjacent to v
-     * @deprecated use v.inEdges()
+     * Better: use v.inEdges()
      */
     public Iterable<Edge> inEdges(Node v) {
         return v.inEdges();
@@ -861,7 +861,7 @@ public class Graph extends GraphBase {
      *
      * @param v node
      * @return all out-edges adjacent to v
-     * @deprecated use v.outEdges()
+     * Better: use v.outEdges()
      */
     public Iterable<Edge> outEdges(Node v) {
         return v.outEdges();
@@ -896,11 +896,11 @@ public class Graph extends GraphBase {
      */
     public String toString() {
         StringBuilder buf = new StringBuilder("Graph:\n");
-        buf.append("Nodes: ").append(String.valueOf(getNumberOfNodes())).append("\n");
+        buf.append("Nodes: ").append(getNumberOfNodes()).append("\n");
 
         for (Node v = getFirstNode(); v != null; v = getNextNode(v))
             buf.append(v.toString()).append("\n");
-        buf.append("Edges: ").append(String.valueOf(getNumberOfEdges())).append("\n");
+        buf.append("Edges: ").append(getNumberOfEdges()).append("\n");
         for (Edge e = getFirstEdge(); e != null; e = getNextEdge(e))
             buf.append(e.toString()).append("\n");
 
@@ -1049,7 +1049,7 @@ public class Graph extends GraphBase {
     protected void fireGraphRead(NodeSet nodes, EdgeSet edges) {
         checkOwner(nodes);
         checkOwner(edges);
-        GraphUpdateListener[] a = graphUpdateListeners.toArray(new GraphUpdateListener[graphUpdateListeners.size()]);
+        GraphUpdateListener[] a = graphUpdateListeners.toArray(new GraphUpdateListener[0]);
         for (GraphUpdateListener gul : a) {
             gul.graphWasRead(nodes, edges);
         }
@@ -1175,7 +1175,7 @@ public class Graph extends GraphBase {
      * @return node labels
      */
     public Iterable<String> nodeLabels() {
-        return () -> new Iterator<String>() {
+        return () -> new Iterator<>() {
             private Node v = getFirstNode();
 
             {
@@ -1209,7 +1209,7 @@ public class Graph extends GraphBase {
      * @return edge labels
      */
     public Iterable<String> edgeLabels() {
-        return () -> new Iterator<String>() {
+        return () -> new Iterator<>() {
             private Edge e = getFirstEdge();
 
             {
@@ -1294,7 +1294,7 @@ public class Graph extends GraphBase {
      * @param a
      * @param b
      * @return true, if adjacent
-     * @deprecated use a.isAdjacent(b)
+     * Better: use a.isAdjacent(b)
      */
     public boolean areAdjacent(Node a, Node b) {
         checkOwner(a);
@@ -1538,7 +1538,7 @@ public class Graph extends GraphBase {
     public void setSpecial(Edge e, boolean special) {
         if (special && !specialEdges.contains(e))
             specialEdges.add(e);
-        else if (!special && specialEdges.contains(e))
+        else if (!special)
             specialEdges.remove(e);
     }
 
@@ -1638,7 +1638,7 @@ public class Graph extends GraphBase {
      * @return iterable over all edges
      */
     public Iterable<Edge> edges(Edge afterMe) {
-        return () -> new Iterator<Edge>() {
+        return () -> new Iterator<>() {
             Edge e = (afterMe == null ? getFirstEdge() : afterMe.getNext());
 
             @Override
@@ -1683,7 +1683,7 @@ public class Graph extends GraphBase {
      * @return iterable over all nodes
      */
     public Iterable<Node> nodes(Node afterMe) {
-        return () -> new Iterator<Node>() {
+        return () -> new Iterator<>() {
             Node v = (afterMe == null ? getFirstNode() : afterMe.getNext());
 
             @Override
@@ -1788,7 +1788,7 @@ public class Graph extends GraphBase {
         w.write("\tid " + graphId + "\n");
         if (label != null)
             w.write("\tlabel \"" + label + "\"\n");
-        boolean hasNodeLabels=(label2nodes != null && label2nodes.keySet().contains("label"));
+        boolean hasNodeLabels = (label2nodes != null && label2nodes.containsKey("label"));
         for (Node v = getFirstNode(); v != null; v = getNextNode(v)) {
             w.write("\tnode [\n");
             w.write("\t\tid " + v.getId() + "\n");
@@ -1806,7 +1806,7 @@ public class Graph extends GraphBase {
 
             w.write("\t]\n");
         }
-        boolean hasEdgeLabels=(label2edges != null && label2edges.keySet().contains("label"));
+        boolean hasEdgeLabels = (label2edges != null && label2edges.containsKey("label"));
 
         for (Edge e = getFirstEdge(); e != null; e = getNextEdge(e)) {
             w.write("\tedge [\n");
@@ -1876,9 +1876,9 @@ public class Graph extends GraphBase {
             int sourceId = np.getInt();
             np.matchIgnoreCase("target");
             int targetId = np.getInt();
-            if (!id2node.keySet().contains(sourceId))
+            if (!id2node.containsKey(sourceId))
                 throw new IOException("Undefined node id: " + sourceId);
-            if (!id2node.keySet().contains(targetId))
+            if (!id2node.containsKey(targetId))
                 throw new IOException("Undefined node id: " + targetId);
             Edge e = newEdge(id2node.get(sourceId), id2node.get(targetId));
             if (np.peekMatchIgnoreCase("label")) {

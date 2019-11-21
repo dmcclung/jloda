@@ -22,6 +22,7 @@ package jloda.swing.util;
 import jloda.swing.message.MessageWindow;
 import jloda.util.Basic;
 import jloda.util.CanceledException;
+import jloda.util.ProgramProperties;
 import jloda.util.UsageException;
 
 import javax.swing.*;
@@ -47,8 +48,6 @@ public class ArgsOptions {
 
     private final Set<String> shortKeys = new HashSet<>();
     private final Set<String> longKeys = new HashSet<>();
-
-    private final boolean usingInstall4j;
 
     private boolean alreadyHasOtherComment = false;
 
@@ -76,15 +75,6 @@ public class ArgsOptions {
      * @param description program description
      */
     public ArgsOptions(String[] args, Object main, String programName, String description) throws CanceledException {
-
-        if (args.length > 0 && args[0].equals("--install4j")) {
-            String[] tmp = new String[args.length - 1];
-            System.arraycopy(args, 1, tmp, 0, tmp.length);
-            args = tmp;
-            usingInstall4j = true;
-        } else
-            usingInstall4j = false;
-
         if (args.length > 0 && args[args.length - 1].equals("--argsGui")) {
             args = getDialogInput(args, args.length - 1);
         }
@@ -162,8 +152,7 @@ public class ArgsOptions {
         else {      // replace by two or more spaces
             buf.append("  ");
             int top = Math.min(35, line.length());
-            for (int i = pos; i < top; i++)
-                buf.append(" ");
+            buf.append(" ".repeat(Math.max(0, top - pos)));
             pos++;
             while (pos < line.length()) {
                 buf.append(line.charAt(pos));
@@ -204,12 +193,12 @@ public class ArgsOptions {
                 throw new UsageException("Help");
         }
         if (arguments.size() > 0) {
-            String message = "Invalid, unknown or duplicate option:";
+            StringBuilder message = new StringBuilder("Invalid, unknown or duplicate option:");
             for (String arg : arguments) {
-                message += " " + arg;
+                message.append(" ").append(arg);
             }
-            message += "\n";
-            throw new UsageException(message);
+            message.append("\n");
+            throw new UsageException(message.toString());
         }
     }
 
@@ -397,12 +386,12 @@ public class ArgsOptions {
 
     public String[] getOption(String shortKey, String longKey, String description, String[] defaultValue) throws UsageException {
         List<String> result = getOption(shortKey, longKey, description, Arrays.asList(defaultValue), false);
-        return result.toArray(new String[result.size()]);
+        return result.toArray(new String[0]);
     }
 
     public String[] getOptionMandatory(String shortKey, String longKey, String description, String[] defaultValue) throws UsageException {
         List<String> result = getOption(shortKey, longKey, description, Arrays.asList(defaultValue), true);
-        return result.toArray(new String[result.size()]);
+        return result.toArray(new String[0]);
     }
 
     public Number getOption(String shortKey, String longKey, String description, Number defaultValue, boolean mandatory) throws UsageException {
@@ -449,6 +438,9 @@ public class ArgsOptions {
     }
 
     private boolean getOption(String shortKey, String longKey, String description, boolean defaultValue, boolean mandatory) throws UsageException {
+        if (shortKey.equals("+g"))
+            shortKey = "-g"; // for backward compatibility
+
         boolean hide = false;
         if (shortKey.startsWith("!")) {
             hide = true;
@@ -697,7 +689,4 @@ public class ArgsOptions {
         return messageWindow != null && messageWindow.isVisible();
     }
 
-    public boolean isUsingInstall4j() {
-        return usingInstall4j;
-    }
 }

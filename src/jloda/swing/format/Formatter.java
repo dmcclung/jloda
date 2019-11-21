@@ -31,8 +31,8 @@ import jloda.swing.director.IDirectableViewer;
 import jloda.swing.director.IDirector;
 import jloda.swing.graphview.*;
 import jloda.swing.util.ChooseColorDialog;
-import jloda.swing.util.ProgramProperties;
-import jloda.swing.util.WindowListenerAdapter;
+import jloda.swing.window.WindowListenerAdapter;
+import jloda.util.ProgramProperties;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -65,7 +65,6 @@ public class Formatter implements IDirectableViewer {
     private JComboBox<NodeShape> nodeShape;
     private JCheckBox boldFont, italicFont, labels, foregroundColor, backgroundColor, labelForegroundColor,
             labelBackgroundColor;
-    private JButton rotateLabelsLeft, rotateLabelsRight;
     private JColorChooser colorChooser;
 
     private final JScrollBar alphaValueSBar = new JScrollBar(JScrollBar.HORIZONTAL, 255, 1, 0, 256);
@@ -75,7 +74,7 @@ public class Formatter implements IDirectableViewer {
      * constructor
      *
      * @param dir               the director
-     * @param viewer            the graph view
+     * @param viewer            the graph tree
      * @param showRotateButtons show label rotate buttons?
      */
     public Formatter(final IDirector dir, final INodeEdgeFormatable viewer, boolean showRotateButtons) {
@@ -86,8 +85,7 @@ public class Formatter implements IDirectableViewer {
         setUptoDate(true);
 
         frame = new JFrame();
-        if (ProgramProperties.getProgramIcon() != null)
-            frame.setIconImage(ProgramProperties.getProgramIcon().getImage());
+        frame.setIconImages(ProgramProperties.getProgramIconImages());
         frame.setJMenuBar(menuBar);
         frame.setLocationRelativeTo(viewer.getFrame());
         final int[] geometry = ProgramProperties.get(CONFIGURATOR_GEOMETRY, new int[]{100, 100, 585, 475});
@@ -212,7 +210,7 @@ public class Formatter implements IDirectableViewer {
     }
 
     /**
-     * ask view to update itself. This is method is wrapped into a runnable object
+     * ask tree to update itself. This is method is wrapped into a runnable object
      * and put in the swing event queue to avoid concurrent modifications.
      *
      * @param what is to be updated
@@ -384,7 +382,7 @@ public class Formatter implements IDirectableViewer {
     }
 
     /**
-     * ask view to prevent user input
+     * ask tree to prevent user input
      */
 
     public void lockUserInput() {
@@ -396,7 +394,7 @@ public class Formatter implements IDirectableViewer {
     }
 
     /**
-     * ask view to allow user input
+     * ask tree to allow user input
      */
     public void unlockUserInput() {
         colorChooser.setEnabled(true);
@@ -405,7 +403,7 @@ public class Formatter implements IDirectableViewer {
     }
 
     /**
-     * ask view to destroy itself
+     * ask tree to destroy itself
      */
     public void destroyView() {
         dir.removeViewer(this);
@@ -473,12 +471,10 @@ public class Formatter implements IDirectableViewer {
         colorPanel2.setLayout(new BoxLayout(colorPanel2, BoxLayout.X_AXIS));
         colorPanel2.add(new JLabel("Alpha:"));
         colorPanel2.add(alphaValueSBar);
-        alphaValueSBar.addAdjustmentListener(new AdjustmentListener() {
-            public void adjustmentValueChanged(AdjustmentEvent adjustmentEvent) {
-                if (!noAlphaBounce && !adjustmentEvent.getValueIsAdjusting()) {
-                    System.err.println("Changed");
-                    colorStateChanged();
-                }
+        alphaValueSBar.addAdjustmentListener(adjustmentEvent -> {
+            if (!noAlphaBounce && !adjustmentEvent.getValueIsAdjusting()) {
+                System.err.println("Changed");
+                colorStateChanged();
             }
         });
 
@@ -512,7 +508,9 @@ public class Formatter implements IDirectableViewer {
         // labels.setText("Show Labels");
         if (showRotateButtons) {
             labelPanel.add(new JLabel("   Rotate Node Labels: "));
+            JButton rotateLabelsLeft;
             labelPanel.add(rotateLabelsLeft = new JButton(actions.getRotateLabelsLeft()));
+            JButton rotateLabelsRight;
             labelPanel.add(rotateLabelsRight = new JButton(actions.getRotateLabelsRight()));
         }
         topPanel.add(labelPanel);
@@ -624,11 +622,7 @@ public class Formatter implements IDirectableViewer {
 
         chooser.setPreviewPanel(new JPanel());
 
-        chooser.getSelectionModel().addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent ev) {
-                colorStateChanged();
-            }
-        });
+        chooser.getSelectionModel().addChangeListener(ev -> colorStateChanged());
         return chooser;
     }
 

@@ -25,6 +25,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.ListCell;
@@ -40,21 +41,20 @@ import javafx.scene.paint.Color;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 /**
- * simple implementation of a flow view
+ * simple implementation of a flow tree
  * Uses virtualization
  * Also allows background production of nodes. This is useful if computing a node for an item takes time
  * Daniel Huson, 4.2019
  */
 public class FlowView<T> extends Pane implements Closeable {
     private final ObservableList<T> items = FXCollections.observableArrayList();
-    private final Map<T, Node> item2node = new HashMap<>();
+    private final ObservableMap<T, Node> item2node = FXCollections.observableHashMap();
     private final Function<T, Node> nodeProducer;
     private final ObservableList<T> nodeProducerQueue = FXCollections.observableArrayList();
 
@@ -117,8 +117,9 @@ public class FlowView<T> extends Pane implements Closeable {
                 e.consume();
             }
         });
+        listView.setFocusTraversable(false);
 
-        listView.setCellFactory(v -> new ListCell<ArrayList<T>>() {
+        listView.setCellFactory(v -> new ListCell<>() {
             {
                 setStyle(String.format("-fx-padding: %.0fpx %.0fpx %.0fpx %.0fpx;", 0.5 * getVgap(), getHgap(), 0.5 * getVgap(), getHgap()));
             }
@@ -178,20 +179,22 @@ public class FlowView<T> extends Pane implements Closeable {
             size.set(items.size());
         });
 
-        blockSize.addListener((c, o, n) -> {
-            recomputeBlocks(items, true);
-        });
+        blockSize.addListener((c, o, n) -> recomputeBlocks(items, true));
 
-        precomputeSnapshots.addListener((c, o, n) -> {
-            precomputeSnapshots(n);
-        });
+        precomputeSnapshots.addListener((c, o, n) -> precomputeSnapshots(n));
 
+        selectedItemListener = (c, o, n) -> {
+            if (n != null && isScrollToSelection()) { // doesn't work very well
+                final Node node = item2node.get(n);
+                if (node != null) {
+                    final Node subFlowPaneContainingNode = node.getParent();
+                    if (subFlowPaneContainingNode == null)
+                        System.err.println("parentOfNode==null");
 
-        selectedItemListener = (observable, oldValue, newValue) -> {
-            if (isScrollToSelection()) { // doesn't work very well
-                if (item2node.get(newValue) != null && item2node.get(newValue).getParent() != null && item2node.get(newValue).getParent().getUserData() instanceof ArrayList) {
-                    final ArrayList<T> block = (ArrayList<T>) item2node.get(newValue).getParent().getUserData();
-                    listView.scrollTo(block);
+                    if (subFlowPaneContainingNode != null && subFlowPaneContainingNode.getUserData() instanceof ArrayList) {
+                        final ArrayList<T> block = (ArrayList<T>) subFlowPaneContainingNode.getUserData();
+                        listView.scrollTo(block);
+                    }
                 }
             }
         };
@@ -207,16 +210,16 @@ public class FlowView<T> extends Pane implements Closeable {
             listView.getItems().clear();
         }
 
-        ArrayList<T> array = new ArrayList<>(getBlockSize());
+        ArrayList<T> block = new ArrayList<>(getBlockSize());
         for (T item : items) {
-            array.add(item);
-            if (array.size() == getBlockSize()) {
-                listView.getItems().add(array);
-                array = new ArrayList<>(getBlockSize());
+            block.add(item);
+            if (block.size() == getBlockSize()) {
+                listView.getItems().add(block);
+                block = new ArrayList<>(getBlockSize());
             }
         }
-        if (array.size() > 0)
-            listView.getItems().add(array);
+        if (block.size() > 0)
+            listView.getItems().add(block);
     }
 
 
@@ -258,7 +261,7 @@ public class FlowView<T> extends Pane implements Closeable {
     }
 
     /**
-     * close the flow view. Shuts down the background thread, if used
+     * close the flow tree. Shuts down the background thread, if used
      */
     public void close() {
         if (executorService != null)
@@ -268,6 +271,10 @@ public class FlowView<T> extends Pane implements Closeable {
 
     public ObservableList<T> getItems() {
         return items;
+    }
+
+    public Map<T, Node> getItemNodeMap() {
+        return new ReadOnlyMapWrapper<>(item2node);
     }
 
     public int getBlockSize() {

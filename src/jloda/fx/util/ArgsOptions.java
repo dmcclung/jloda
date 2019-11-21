@@ -19,11 +19,7 @@
 
 package jloda.fx.util;
 
-import jloda.swing.util.ProgramProperties;
-import jloda.util.Basic;
-import jloda.util.CanceledException;
-import jloda.util.UsageException;
-import jloda.util.Version;
+import jloda.util.*;
 
 import java.util.*;
 
@@ -46,8 +42,6 @@ public class ArgsOptions {
     private final Set<String> shortKeys = new HashSet<>();
     private final Set<String> longKeys = new HashSet<>();
 
-    private final boolean usingInstall4j;
-
     private boolean alreadyHasOtherComment = false;
 
     private boolean doHelp = false;
@@ -62,7 +56,7 @@ public class ArgsOptions {
      * @param description program description
      */
     public ArgsOptions(String[] args, Class clazz, String description) throws CanceledException {
-        this(args, clazz, (ProgramProperties.getProgramName() != null && ProgramProperties.getProgramName().length() > 0 ? ProgramProperties.getProgramName() : (clazz != null ? Basic.getShortName(clazz) : "Unknown")), description);
+        this(args, clazz, (ProgramProperties.getProgramName() != null && ProgramProperties.getProgramName().length() > 0 ? ProgramProperties.getProgramName() : (clazz != null ? clazz.getSimpleName() : "Unknown")), description);
     }
 
     /**
@@ -73,7 +67,7 @@ public class ArgsOptions {
      * @param description program description
      */
     public ArgsOptions(String[] args, Object main, String description) throws CanceledException {
-        this(args, main, (ProgramProperties.getProgramName() != null && ProgramProperties.getProgramName().length() > 0 ? ProgramProperties.getProgramName() : (main != null ? Basic.getShortName(main.getClass()) : "Unknown")), description);
+        this(args, main, (ProgramProperties.getProgramName() != null && ProgramProperties.getProgramName().length() > 0 ? ProgramProperties.getProgramName() : (main != null ? main.getClass().getSimpleName() : "Unknown")), description);
     }
 
     /**
@@ -85,15 +79,6 @@ public class ArgsOptions {
      * @param description program description
      */
     public ArgsOptions(String[] args, Object main, String programName, String description) throws CanceledException {
-
-        if (args.length > 0 && args[0].equals("--install4j")) {
-            String[] tmp = new String[args.length - 1];
-            System.arraycopy(args, 1, tmp, 0, tmp.length);
-            args = tmp;
-            usingInstall4j = true;
-        } else
-            usingInstall4j = false;
-
         if (args.length > 0 && args[args.length - 1].equals("--argsGui")) {
             args = getDialogInput(args, args.length - 1);
         }
@@ -127,15 +112,6 @@ public class ArgsOptions {
      * @param description program description
      */
     public ArgsOptions(String[] args, Class clazz, String programName, String description) throws CanceledException {
-
-        if (args.length > 0 && args[0].equals("--install4j")) {
-            String[] tmp = new String[args.length - 1];
-            System.arraycopy(args, 1, tmp, 0, tmp.length);
-            args = tmp;
-            usingInstall4j = true;
-        } else
-            usingInstall4j = false;
-
         if (args.length > 0 && args[args.length - 1].equals("--argsGui")) {
             args = getDialogInput(args, args.length - 1);
         }
@@ -185,13 +161,13 @@ public class ArgsOptions {
         result.append(replaceFirstColon("\t-v, --verbose: Echo commandline options and be verbose. Default value: false.\n"));
         result.append(replaceFirstColon("\t-h, --help: Show program usage and quit.\n"));
         if (authors != null)
-            result.append("AUTHOR(s)\n\t").append(authors).append(".\n");
+            result.append("AUTHOR(s)\n\t").append(authors.trim()).append(".\n");
 
         if (version != null)
-            result.append("VERSION\n\t").append(version).append(".\n");
+            result.append("VERSION\n\t").append(version.trim()).append(".\n");
 
         if (license != null)
-            result.append("LICENSE\n\t").append(license).append(".\n");
+            result.append("LICENSE\n\t").append(license.trim().replaceAll("\\n", "\n\t")).append(".\n");
 
         return result.toString();
     }
@@ -214,8 +190,7 @@ public class ArgsOptions {
         else {      // replace by two or more spaces
             buf.append("  ");
             int top = Math.min(35, line.length());
-            for (int i = pos; i < top; i++)
-                buf.append(" ");
+            buf.append(" ".repeat(Math.max(0, top - pos)));
             pos++;
             while (pos < line.length()) {
                 buf.append(line.charAt(pos));
@@ -739,10 +714,6 @@ public class ArgsOptions {
         } else
         */
         return new String[0];
-    }
-
-    public boolean isUsingInstall4j() {
-        return usingInstall4j;
     }
 
     public boolean isHasMessageWindow() {

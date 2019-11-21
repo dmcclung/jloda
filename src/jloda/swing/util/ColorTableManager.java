@@ -20,6 +20,7 @@
 package jloda.swing.util;
 
 import jloda.util.Basic;
+import jloda.util.ProgramProperties;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -102,7 +103,7 @@ public class ColorTableManager {
      */
     public static ColorTable getColorTable(String name) {
         init();
-        if (name != null && name2ColorTable.keySet().contains(name)) {
+        if (name != null && name2ColorTable.containsKey(name)) {
             return name2ColorTable.get(name);
         }
         else
@@ -117,7 +118,7 @@ public class ColorTableManager {
      */
     public static ColorTable getColorTableHeatMap(String name) {
         init();
-        if (name != null && name2ColorTable.keySet().contains(name)) {
+        if (name != null && name2ColorTable.containsKey(name)) {
             return name2ColorTable.get(name);
         } else
             return name2ColorTable.get(DefaultColorTableHeatMap);
@@ -134,7 +135,7 @@ public class ColorTableManager {
      */
     public static String[] getNames() {
         init();
-        return name2ColorTable.keySet().toArray(new String[name2ColorTable.size()]);
+        return name2ColorTable.keySet().toArray(new String[0]);
     }
 
     /**
@@ -152,7 +153,7 @@ public class ColorTableManager {
             if (!list.contains(name))
                 list.add(name);
         }
-        return list.toArray(new String[list.size()]);
+        return list.toArray(new String[0]);
     }
 
     /**
@@ -191,14 +192,14 @@ public class ColorTableManager {
      */
     public static ColorTable getDefaultColorTable() {
         String name = ProgramProperties.get("DefaultColorTableName", DefaultColorTableName);
-        if (name2ColorTable.keySet().contains(name))
+        if (name2ColorTable.containsKey(name))
             return getColorTable(name);
         else
             return getColorTable(DefaultColorTableName);
     }
 
     public static void setDefaultColorTable(String name) {
-        if (name2ColorTable.keySet().contains(name))
+        if (name2ColorTable.containsKey(name))
             ProgramProperties.put("DefaultColorTableName", name);
     }
 
@@ -209,14 +210,14 @@ public class ColorTableManager {
      */
     public static ColorTable getDefaultColorTableHeatMap() {
         String name = ProgramProperties.get("DefaultColorTableHeatMap", DefaultColorTableHeatMap);
-        if (name2ColorTable.keySet().contains(name))
+        if (name2ColorTable.containsKey(name))
             return getColorTable(name);
         else
             return getColorTable(DefaultColorTableHeatMap);
     }
 
     public static void setDefaultColorTableHeatMap(String name) {
-        if (name2ColorTable.keySet().contains(name))
+        if (name2ColorTable.containsKey(name))
             ProgramProperties.put("DefaultColorTableHeatMap", name);
 
     }

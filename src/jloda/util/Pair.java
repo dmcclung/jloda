@@ -28,7 +28,7 @@ import java.util.Iterator;
  * @author huson
  *         Date: 14-May-2004
  */
-public class Pair<S, T> implements Comparable<Pair<S, T>>, Comparator<Pair<S, T>> {
+public class Pair<S, T> implements Comparable<Pair<S, T>>, Comparator<Pair<S, T>>, Iterable<Object> {
     private S first;
     private T second;
 
@@ -207,27 +207,22 @@ public class Pair<S, T> implements Comparable<Pair<S, T>>, Comparator<Pair<S, T>
      * @return iterable over all first elements
      */
     public static <P, Q> Iterable<P> firstValues(final Iterable<Pair<P, Q>> src) {
-        return new Iterable<P>() {
+        return () -> new Iterator<>() {
+            private final Iterator<Pair<P, Q>> it = src.iterator();
+
             @Override
-            public Iterator<P> iterator() {
-                return new Iterator<P>() {
-                    private final Iterator<Pair<P, Q>> it = src.iterator();
+            public boolean hasNext() {
+                return it.hasNext();
+            }
 
-                    @Override
-                    public boolean hasNext() {
-                        return it.hasNext();
-                    }
+            @Override
+            public P next() {
+                return it.next().getFirst();
+            }
 
-                    @Override
-                    public P next() {
-                        return it.next().getFirst();
-                    }
-
-                    @Override
-                    public void remove() {
-                        it.remove();
-                    }
-                };
+            @Override
+            public void remove() {
+                it.remove();
             }
         };
     }
@@ -241,27 +236,46 @@ public class Pair<S, T> implements Comparable<Pair<S, T>>, Comparator<Pair<S, T>
      * @return iterable over all second elements
      */
     public static <P, Q> Iterable<Q> secondValues(final Iterable<Pair<P, Q>> src) {
-        return new Iterable<Q>() {
+        return () -> new Iterator<>() {
+            private final Iterator<Pair<P, Q>> it = src.iterator();
+
             @Override
-            public Iterator<Q> iterator() {
-                return new Iterator<Q>() {
-                    private final Iterator<Pair<P, Q>> it = src.iterator();
+            public boolean hasNext() {
+                return it.hasNext();
+            }
 
-                    @Override
-                    public boolean hasNext() {
-                        return it.hasNext();
-                    }
+            @Override
+            public Q next() {
+                return it.next().getSecond();
+            }
 
-                    @Override
-                    public Q next() {
-                        return it.next().getSecond();
-                    }
+            @Override
+            public void remove() {
+                it.remove();
+            }
+        };
+    }
 
-                    @Override
-                    public void remove() {
-                        it.remove();
-                    }
-                };
+    @Override
+    public Iterator<Object> iterator() {
+        return new Iterator<>() {
+            private int count = 0;
+
+            @Override
+            public boolean hasNext() {
+                return count < 2;
+            }
+
+            @Override
+            public Object next() {
+                if (count == 0) {
+                    count++;
+                    return getFirst();
+                } else if (count == 1) {
+                    count++;
+                    return getSecond();
+                } else
+                    return null;
             }
         };
     }

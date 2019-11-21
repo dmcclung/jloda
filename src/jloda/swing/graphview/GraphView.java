@@ -20,7 +20,7 @@
 /**
  * @version $Id: GraphView.java,v 1.189 2010-06-08 08:55:32 huson Exp $
  *
- * Graph view class.
+ * Graph tree class.
  *
  * @author Daniel Huson
  */
@@ -31,8 +31,8 @@ import jloda.swing.export.ExportManager;
 import jloda.swing.util.BasicSwing;
 import jloda.swing.util.Cursors;
 import jloda.swing.util.Geometry;
-import jloda.swing.util.ProgramProperties;
 import jloda.util.Basic;
+import jloda.util.ProgramProperties;
 import jloda.util.parse.NexusStreamParser;
 
 import javax.swing.*;
@@ -188,11 +188,7 @@ public class GraphView extends JPanel implements Printable, Scrollable, INodeEdg
         scrollPane.setCorner(JScrollPane.LOWER_RIGHT_CORNER, zoomButton);
 
         trans = new Transform(this);
-        trans.addChangeListener(new ITransformChangeListener() {
-            public void hasChanged(Transform trans) {
-                recomputeMargins();
-            }
-        });
+        trans.addChangeListener(trans -> recomputeMargins());
 
         getScrollPane().addComponentListener(new ComponentAdapter() {
             public void componentResized(ComponentEvent event) {
@@ -207,13 +203,11 @@ public class GraphView extends JPanel implements Printable, Scrollable, INodeEdg
             }
 
             public void deleteNode(Node v) {
-                if (selectedNodes.contains(v))
-                    selectedNodes.remove(v);
+                selectedNodes.remove(v);
             }
 
             public void deleteEdge(Edge e) {
-                if (selectedEdges.contains(e))
-                    selectedEdges.remove(e);
+                selectedEdges.remove(e);
             }
         });
 
@@ -254,9 +248,9 @@ public class GraphView extends JPanel implements Printable, Scrollable, INodeEdg
     }
 
     /**
-     * gets the current graph view listener
+     * gets the current graph tree listener
      *
-     * @return graph view listener
+     * @return graph tree listener
      */
     public IGraphViewListener getGraphViewListener() {
         return graphViewListener;
@@ -2308,7 +2302,7 @@ public class GraphView extends JPanel implements Printable, Scrollable, INodeEdg
 
             double scale_x = paper_w / image_w;
             double scale_y = paper_h / image_h;
-            double scale = (scale_x <= scale_y) ? scale_x : scale_y;
+            double scale = Math.min(scale_x, scale_y);
 
             double shift_x = paper_x + (paper_w - scale * image_w) / 2.0;
             double shift_y = paper_y + (paper_h - scale * image_h) / 2.0;
@@ -2965,9 +2959,9 @@ public class GraphView extends JPanel implements Printable, Scrollable, INodeEdg
     }
 
     /**
-     * Returns the preferred size of the viewport for a view component.
+     * Returns the preferred size of the viewport for a tree component.
      *
-     * @return The preferredSize of a JViewport whose view is this Scrollable.
+     * @return The preferredSize of a JViewport whose tree is this Scrollable.
      * @see javax.swing.JViewport#getPreferredSize
      */
     public Dimension getPreferredScrollableViewportSize() {
@@ -2975,7 +2969,7 @@ public class GraphView extends JPanel implements Printable, Scrollable, INodeEdg
     }
 
     /**
-     * @param visibleRect The view area visible within the viewport
+     * @param visibleRect The tree area visible within the viewport
      * @param orientation Either SwingConstants.VERTICAL or SwingConstants.HORIZONTAL.
      * @param direction   Less than zero to scroll up/left, greater than zero for down/right.
      * @return The "block" increment for scrolling in the specified direction.
@@ -2989,7 +2983,7 @@ public class GraphView extends JPanel implements Printable, Scrollable, INodeEdg
     /**
      * Return true if a viewport should always force the height of this
      * Scrollable to match the height of the viewport.  For example a
-     * columnar text view that flowed text in left to right columns
+     * columnar text tree that flowed text in left to right columns
      * could effectively disable vertical scrolling by returning
      * true here.
      * <p/>
@@ -3006,7 +3000,7 @@ public class GraphView extends JPanel implements Printable, Scrollable, INodeEdg
      * Return true if a viewport should always force the width of this
      * <code>Scrollable</code> to match the width of the viewport.
      * For example a normal
-     * text view that supported line wrapping would return true here, since it
+     * text tree that supported line wrapping would return true here, since it
      * would be undesirable for wrapped lines to disappear beyond the right
      * edge of the viewport.  Note that returning true for a Scrollable
      * whose ancestor is a JScrollPane effectively disables horizontal
@@ -3031,7 +3025,7 @@ public class GraphView extends JPanel implements Printable, Scrollable, INodeEdg
      * Scrolling containers, like JScrollPane, will use this method
      * each time the user requests a unit scroll.
      *
-     * @param visibleRect The view area visible within the viewport
+     * @param visibleRect The tree area visible within the viewport
      * @param orientation Either SwingConstants.VERTICAL or SwingConstants.HORIZONTAL.
      * @param direction   Less than zero to scroll up/left, greater than zero for down/right.
      * @return The "unit" increment for scrolling in the specified direction.

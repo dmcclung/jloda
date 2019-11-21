@@ -19,9 +19,7 @@
 
 package jloda.util;
 
-import java.util.BitSet;
-import java.util.Comparator;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * some bit set convenience methods
@@ -78,7 +76,7 @@ public class BitSetUtils {
      * @return members
      */
     public static Iterable<Integer> members(BitSet set) {
-        return () -> new Iterator<Integer>() {
+        return () -> new Iterator<>() {
             private int i = set.nextSetBit(0);
 
             @Override
@@ -167,5 +165,42 @@ public class BitSetUtils {
             max = value;
         }
         return max;
+    }
+
+    public static Collection<? extends Integer> asList(BitSet... sets) {
+        final BitSet set = new BitSet();
+        for (BitSet b : sets) {
+            set.or(b);
+        }
+        final ArrayList<Integer> list = new ArrayList<>(set.cardinality());
+            for (Integer a : members(set)) {
+                list.add(a);
+        }
+        return list;
+    }
+
+    public static void addAll(BitSet bits, int... values) {
+        for (int i : values)
+            bits.set(i);
+    }
+
+    /**
+     * the set X - A
+     *
+     * @param setX
+     * @param setA
+     * @return
+     */
+    public static BitSet minus(BitSet setX, BitSet setA) {
+        final BitSet result = new BitSet();
+        result.or(setX);
+        result.andNot(setA);
+        return result;
+    }
+
+    public static BitSet copy(BitSet bitSet) {
+        final BitSet copy = new BitSet();
+        copy.or(bitSet);
+        return copy;
     }
 }

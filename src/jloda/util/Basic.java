@@ -57,7 +57,7 @@ public class Basic {
             System.err.println("Caught:");
             ex.printStackTrace();
         } else
-            System.err.println(ex.getMessage());
+            System.err.println(ex.getClass().getSimpleName() + ": " + ex.getMessage());
     }
 
     /**
@@ -169,39 +169,6 @@ public class Basic {
     }
 
     /**
-     * Matches prefix of string and return remainder of string.
-     * Prefix need not match string, i.e. only length of prefix is used
-     *
-     * @param string
-     * @param prefix
-     * @return remainder of string after prefix, trimmed
-     * @exeception IOException if given prefix doesn't match prefix of string
-     */
-    public static String matchPrefix(String string, String prefix) throws IOException {
-        if (!string.startsWith(prefix))
-            throw new IOException("Prefix <" + prefix + "> not matched in <" + string + ">");
-        return string.substring(prefix.length(), string.length()).trim();
-    }
-
-    /**
-     * Matches prefix of string and return remainder of string.
-     * Prefix need not match string, i.e. only length of prefix is used
-     *
-     * @param string
-     * @param prefix
-     * @return remainder of string after prefix, trimmed
-     * @exeception IOException if given prefix doesn't match prefix of string
-     */
-    public static String matchPrefix(String string, String prefix, String altPrefix) throws IOException {
-        if (string.startsWith(prefix))
-            return string.substring(prefix.length(), string.length()).trim();
-        else if (string.startsWith(altPrefix))
-            return string.substring(altPrefix.length(), string.length()).trim();
-        else
-            throw new IOException("Prefix <" + prefix + "> or <" + altPrefix + "> not matched in <" + string + ">");
-    }
-
-    /**
      * replaces all white spaces in the given string str  by the given character c.
      * Represents consecutive spaces by one c
      *
@@ -283,7 +250,7 @@ public class Basic {
      * @param seed
      * @return iterator in random order
      */
-    public static <T> Iterator<T> randomize(Iterator<T> it, int seed) {
+    public static <T> Iterator<T> randomize(Iterator<T> it, long seed) {
         return randomize(it, new Random(seed));
     }
 
@@ -295,22 +262,22 @@ public class Basic {
      * @return iterator in random order
      */
     public static <T> Iterator<T> randomize(Iterator<T> it, Random random) {
-        final ArrayList<T> list = new ArrayList<>();
+        final ArrayList<T> input = new ArrayList<>();
         while (it.hasNext())
-            list.add(it.next());
-        final Object[] array = randomize(list.toArray(), random);
-        list.clear();
-        return new Iterator<T>() {
+            input.add(it.next());
+        final ArrayList<T> array = randomize(input, random);
+
+        return new Iterator<>() {
             private int i = 0;
 
             @Override
             public boolean hasNext() {
-                return i < array.length;
+                return i < array.size();
             }
 
             @Override
             public T next() {
-                return (T) array[i++];
+                return array.get(i++);
             }
 
             @Override
@@ -320,21 +287,41 @@ public class Basic {
     }
 
     /**
+     * given a iterator, returns a new iterator in random order
+     *
+     * @param iterable
+     * @param random
+     * @return iterator in random order
+     */
+    public static <T> Iterable<T> randomize(Iterable<T> iterable, Random random) {
+        return () -> randomize(iterable.iterator(), random);
+    }
+
+    /**
      * given a list, returns a new collection in random order
      *
      * @param list
      * @param seed
      * @return iterator in random order
      */
-    public static <T> ArrayList<T> randomize(ArrayList<T> list, int seed) {
-        int[] indices = new int[list.size()];
-        for (int i = 0; i < indices.length; i++)
-            indices[i] = i;
-        randomize(indices, seed);
-        final ArrayList<T> result = new ArrayList<>();
-        for (int i : indices)
-            result.add(list.get(i));
-        return result;
+    public static <T> ArrayList<T> randomize(List<T> list, long seed) {
+        return randomize(list, new Random(seed));
+    }
+
+    public static <T> Set<T> asSet(Iterable<T> iterable) {
+        final Set<T> set = new HashSet<>();
+        for (T t : iterable) {
+            set.add(t);
+        }
+        return set;
+    }
+
+    public static <T> ArrayList<T> asList(Iterable<T> iterable) {
+        final ArrayList<T> list = new ArrayList<>();
+        for (T t : iterable) {
+            list.add(t);
+        }
+        return list;
     }
 
     /**
@@ -344,7 +331,7 @@ public class Basic {
      * @param seed
      * @return array in random order
      */
-    public static <T> T[] randomize(T[] array, int seed) {
+    public static <T> T[] randomize(T[] array, long seed) {
         return randomize(array, new Random(seed));
     }
 
@@ -356,14 +343,36 @@ public class Basic {
      * @return array in random order
      */
     public static <T> T[] randomize(T[] array, Random random) {
-        T[] result = (T[]) new Object[array.length];
-        System.arraycopy(array, 0, result, 0, array.length);
+        final T[] result = Arrays.copyOf(array, array.length);
 
         for (int i = result.length - 1; i >= 1; i--) {
             int j = random.nextInt(i + 1);
-            T tmp = result[i];
-            result[i] = result[j];
-            result[j] = tmp;
+            if (j != i) {
+                T tmp = result[i];
+                result[i] = result[j];
+                result[j] = tmp;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * given an array, returns it randomized (Durstenfeld 1964)
+     *
+     * @param array
+     * @param random
+     * @return array in random order
+     */
+    public static <T> ArrayList<T> randomize(Collection<T> array, Random random) {
+        final ArrayList<T> result = new ArrayList<>(array);
+
+        for (int i = result.size() - 1; i >= 1; i--) {
+            int j = random.nextInt(i + 1);
+            if (j != i) {
+                T tmp = result.get(i);
+                result.set(i, result.get(j));
+                result.set(j, tmp);
+            }
         }
         return result;
     }
@@ -374,29 +383,33 @@ public class Basic {
      * @param array
      * @param seed
      */
-    public static void randomize(long[] array, int seed) {
+    public static void randomize(long[] array, long seed) {
         Random random = new Random(seed);
         for (int i = array.length - 1; i >= 1; i--) {
             int j = random.nextInt(i + 1);
-            long tmp = array[i];
-            array[i] = array[j];
-            array[j] = tmp;
+            if (j != i) {
+                long tmp = array[i];
+                array[i] = array[j];
+                array[j] = tmp;
+            }
         }
     }
 
     /**
-     * randomize array of longs using (Durstenfeld 1964)
+     * randomize array of int using (Durstenfeld 1964)
      *
      * @param array
      * @param seed
      */
-    public static void randomize(int[] array, int seed) {
+    public static void randomize(int[] array, long seed) {
         Random random = new Random(seed);
         for (int i = array.length - 1; i >= 1; i--) {
             int j = random.nextInt(i + 1);
-            int tmp = array[i];
-            array[i] = array[j];
-            array[j] = tmp;
+            if (j != i) {
+                int tmp = array[i];
+                array[i] = array[j];
+                array[j] = tmp;
+            }
         }
     }
 
@@ -420,7 +433,6 @@ public class Basic {
         return shifted / magnitude;
     }
 
-
     /**
      * returns the sign of x
      *
@@ -434,22 +446,6 @@ public class Basic {
             return -1;
         else
             return 0;
-    }
-
-    /**
-     * returns a wrapped around string
-     *
-     * @param str
-     * @param lineLength
-     * @return wrapped around string
-     */
-    public static String wraparound(String str, int lineLength) {
-        StringBuilder buf = new StringBuilder();
-
-        for (int p = 0; p < str.length(); p += lineLength) {
-            buf.append(str.substring(p, Math.min(str.length(), p + lineLength))).append("\n");
-        }
-        return buf.toString();
     }
 
     /**
@@ -505,16 +501,13 @@ public class Basic {
     }
 
     /**
-     * sort a list using the given comparator
+     * gets the current date
      *
-     * @param list
-     * @param comparator
+     * @param pattern, e.g. yyyy-MM-dd hh:mm:ss
+     * @return date string
      */
-    public static <T> void sort(List<T> list, Comparator<T> comparator) {
-        T[] array = (T[]) list.toArray();
-        Arrays.sort(array, comparator);
-        list.clear();
-        list.addAll(Arrays.asList(array));
+    public static String getDateString(String pattern) {
+        return (new SimpleDateFormat(pattern)).format(System.currentTimeMillis());
     }
 
     /**
@@ -536,13 +529,7 @@ public class Basic {
      * @return short name
      */
     public static String getShortName(Class clazz) {
-        if (clazz == null)
-            return null;
-        final int pos = clazz.getName().lastIndexOf('.');
-        if (pos == -1)
-            return clazz.getName();
-        else
-            return clazz.getName().substring(pos + 1);
+        return clazz.getSimpleName();
     }
 
     /**
@@ -643,7 +630,7 @@ public class Basic {
                     buf.append(" ");
                 } else
                     first = false;
-                buf.append(token.substring(0, pos + lineBreakString.length()));
+                buf.append(token, 0, pos + lineBreakString.length());
                 lineLength = 0;
                 token = token.substring(pos + lineBreakString.length());
             }
@@ -991,19 +978,19 @@ public class Basic {
      * @param separator
      * @return string representation
      */
-    public static String toString(Collection collection, String separator) {
+    public static <T> String toString(Collection<T> collection, String separator) {
         if (collection == null)
             return "";
         final StringBuilder buf = new StringBuilder();
 
         boolean first = true;
-        for (Object aCollection : collection) {
-            if (aCollection != null) {
+        for (T object : collection) {
+            if (object != null) {
                 if (first)
                     first = false;
                 else if (separator != null)
                     buf.append(separator);
-                buf.append(aCollection);
+                buf.append(object);
             }
         }
         return buf.toString();
@@ -1097,7 +1084,7 @@ public class Basic {
      * @param separator
      * @return string representation
      */
-    public static String toString(Iterable iterable, String separator) {
+    public static <T> String toString(Iterable<T> iterable, String separator) {
         return toString(iterable.iterator(), separator);
     }
 
@@ -1108,7 +1095,7 @@ public class Basic {
      * @param separator
      * @return string representation
      */
-    public static String toString(Iterator iterator, String separator) {
+    public static <T> String toString(Iterator<T> iterator, String separator) {
         if (iterator == null)
             return "";
         final StringBuilder buf = new StringBuilder();
@@ -1116,26 +1103,10 @@ public class Basic {
         while (iterator.hasNext()) {
             if (buf.length() > 0)
                 buf.append(separator);
-            Object next = iterator.next();
-            String str = next.toString();
+            T next = iterator.next();
             buf.append(next);
         }
         return buf.toString();
-    }
-
-    /**
-     * Get a class instance for the given fully qualified classname.
-     * The plugin classloader is used as returned by {@link ResourceUtils#getBasicClassLoader()}.
-     * <p/>
-     * <p/>
-     * It is discouraged to use {@link Class#forName(java.lang.String)}.
-     *
-     * @param name
-     * @return
-     * @throws ClassNotFoundException
-     */
-    public static Class classForName(String name) throws ClassNotFoundException {
-        return ResourceUtils.getBasicClassLoader().loadClass(name);
     }
 
     /**
@@ -1287,22 +1258,6 @@ public class Basic {
     }
 
     /**
-     * remove all characters except for letters and digits
-     *
-     * @param str
-     * @return string of letters and digits
-     */
-    public static String removeAllButLettersDigits(String str) {
-        StringBuilder buf = new StringBuilder();
-        for (int i = 0; i < str.length(); i++) {
-            char ch = str.charAt(i);
-            if (Character.isLetterOrDigit(ch))
-                buf.append(ch);
-        }
-        return buf.toString();
-    }
-
-    /**
      * converts a list of objects to a string
      *
      * @param result
@@ -1347,29 +1302,6 @@ public class Basic {
         if (list.size() > 0) {
             result.addAll(list);
             result.add(result.remove(0));
-        }
-        return result;
-    }
-
-    /**
-     * reduce the number of elements in a list to n
-     *
-     * @param list
-     * @param n
-     * @return sublist with n elements
-     */
-    public static <T> List reduceList(List<T> list, int n) {
-        List<T> result = new LinkedList<>();
-        int mod = list.size() / n;
-        int i = 0;
-        int count = 0;
-        for (T t : list) {
-            if (++i == mod) {
-                result.add(t);
-                i = 0;
-                if (++count == n)
-                    break;
-            }
         }
         return result;
     }
@@ -1506,12 +1438,13 @@ public class Basic {
      * @return list of strings
      * @throws IOException
      */
-    public static List<String> getLinesFromFile(String file) throws IOException {
-        List<String> result = new LinkedList<>();
-        BufferedReader r = new BufferedReader(new FileReader(file));
-        String aLine;
-        while ((aLine = r.readLine()) != null) {
-            result.add(aLine);
+    public static ArrayList<String> getLinesFromFile(String file) throws IOException {
+        final ArrayList<String> result = new ArrayList<>();
+        try (BufferedReader r = new BufferedReader(new FileReader(file))) {
+            String aLine;
+            while ((aLine = r.readLine()) != null) {
+                result.add(aLine);
+            }
         }
         return result;
     }
@@ -1524,9 +1457,8 @@ public class Basic {
      */
     public static List<String> getLinesFromString(String string) {
         List<String> result = new LinkedList<>();
-        BufferedReader r = new BufferedReader(new StringReader(string));
+        try (BufferedReader r = new BufferedReader(new StringReader(string))) {
         String aLine;
-        try {
             while ((aLine = r.readLine()) != null) {
                 aLine = aLine.trim();
                 if (aLine.length() > 0)
@@ -1554,20 +1486,6 @@ public class Basic {
                 result.add(obj);
         }
         return result;
-    }
-
-    /**
-     * concatenates two collections and a returns a list
-     *
-     * @param listA
-     * @param listB
-     * @return concatenated list
-     */
-    public static <T> List<T> getConcatenation(Collection<T> listA, Collection<T> listB) {
-        List<T> all = new LinkedList<>();
-        all.addAll(listA);
-        all.addAll(listB);
-        return all;
     }
 
     /**
@@ -1919,66 +1837,6 @@ public class Basic {
         return 0;
     }
 
-    static public boolean deleteDirectory(File path) {
-        if (path.exists()) {
-            if (path.listFiles() != null) {
-                for (File file : path.listFiles()) {
-                    if (file.isDirectory()) {
-                        if (!deleteDirectory(file))
-                            return false;
-                    } else {
-                        if (!file.delete())
-                            return false;
-                    }
-                }
-            }
-        }
-        return path.delete();
-    }
-
-    /**
-     * gets the length of the longest common prefix of the two strings
-     *
-     * @param a
-     * @param b
-     * @return length of lcp
-     */
-    static public int getLongestCommonPrefixLength(String a, String b) {
-        int top = Math.min(a.length(), b.length());
-        for (int i = 0; i < top; i++)
-            if (a.charAt(i) != b.charAt(i))
-                return i;
-        return top;
-    }
-
-    /**
-     * gets the total count
-     *
-     * @param counts
-     * @return total
-     */
-    public static int getTotal(int[] counts) {
-        int total = 0;
-        for (int count : counts) {
-            total += count;
-        }
-        return total;
-    }
-
-    /**
-     * gets the total count
-     *
-     * @param counts
-     * @return total
-     */
-    public static long getTotal(long[] counts) {
-        long total = 0;
-        for (long count : counts) {
-            total += count;
-        }
-        return total;
-    }
-
     /**
      * replace the suffix of a file
      *
@@ -1987,7 +1845,10 @@ public class Basic {
      * @return new file name
      */
     public static String replaceFileSuffix(String fileName, String newSuffix) {
-        return replaceFileSuffix(new File(fileName), newSuffix).getPath();
+        if (fileName == null)
+            return null;
+        else
+            return replaceFileSuffix(new File(fileName), newSuffix).getPath();
     }
 
     /**
@@ -1998,10 +1859,14 @@ public class Basic {
      * @return new file
      */
     public static File replaceFileSuffix(File file, String newSuffix) {
-        String name = Basic.getFileBaseName(file.getName());
-        if (newSuffix != null && !name.endsWith(newSuffix))
-            name = name + newSuffix;
-        return new File(file.getParent(), name);
+        if (file == null)
+            return null;
+        else {
+            String name = Basic.getFileBaseName(file.getName());
+            if (newSuffix != null && !name.endsWith(newSuffix))
+                name = name + newSuffix;
+            return new File(file.getParent(), name);
+        }
     }
 
     public static String getFileNameWithoutZipOrGZipSuffix(String fileName) {
@@ -2031,6 +1896,7 @@ public class Basic {
                     buf.append('C');
                     break;
                 case 'T':
+                case 'U':
                     buf.append('A');
                     break;
                 case 'a':
@@ -2043,11 +1909,6 @@ public class Basic {
                     buf.append('c');
                     break;
                 case 't':
-                    buf.append('a');
-                    break;
-                case 'U':
-                    buf.append('A');
-                    break;
                 case 'u':
                     buf.append('a');
                     break;
@@ -2057,22 +1918,6 @@ public class Basic {
         return buf.toString();
     }
 
-    /**
-     * get format string that has enough leading zeros to display this number
-     *
-     * @param number
-     * @return format string
-     */
-    public static String getIntegerFormatLeadingZeros(int number) {
-        if (number < 10)
-            return "%d";
-        else if (number < 100)
-            return "%02d";
-        else if (number < 1000)
-            return "%03d";
-        else
-            return "%04d";
-    }
 
     final private static long kilo = 1024;
     final private static long mega = 1024 * kilo;
@@ -2149,42 +1994,9 @@ public class Basic {
         } catch (IOException e) {
             Basic.caught(e);
         }
-        if (result == null)
-            return "";
-        else
-            return result;
+        return Objects.requireNonNullElse(result, "");
     }
 
-
-    /**
-     * returns the first block of a text up to an empty line. Consecutive lines are separated by single spaces
-     *
-     * @param text
-     * @return first block
-     */
-    public static String getFirstParagraphAsALine(String text) {
-        if (text == null)
-            return "";
-        StringBuilder buf = new StringBuilder();
-        BufferedReader r = new BufferedReader(new StringReader(text));
-        String aLine;
-        try {
-            boolean first = true;
-            while ((aLine = r.readLine()) != null) {
-                aLine = aLine.trim();
-                if (first)
-                    first = false;
-                else {
-                    if (aLine.length() == 0)
-                        break;  // found empty line, break;
-                    buf.append(" ");
-                }
-                buf.append(aLine);
-            }
-        } catch (IOException e) {
-        }
-        return buf.toString();
-    }
 
     /**
      * get the last line in a text
@@ -2199,12 +2011,12 @@ public class Basic {
         if (pos == text.length() - 1)
             pos = text.lastIndexOf("\r", pos - 1);
         if (pos != -1)
-            return text.substring(pos + 1, text.length());
+            return text.substring(pos + 1);
         pos = text.lastIndexOf("\n");
         if (pos == text.length() - 1)
             pos = text.lastIndexOf("\n", pos - 1);
         if (pos != -1)
-            return text.substring(pos + 1, text.length());
+            return text.substring(pos + 1);
         return text;
     }
 
@@ -2346,10 +2158,7 @@ public class Basic {
      * @return spaces
      */
     public static String spaces(int count) {
-        StringBuilder buf = new StringBuilder();
-        for (int i = 0; i < count; i++)
-            buf.append(" ");
-        return buf.toString();
+        return " ".repeat(Math.max(0, count));
     }
 
     /**
@@ -2519,7 +2328,7 @@ public class Basic {
         while ((aLine = r.readLine()) != null) {
             lines.add(aLine);
         }
-        return lines.toArray(new String[lines.size()]);
+        return lines.toArray(new String[0]);
     }
 
     public static String capitalizeWords(String str) {
@@ -2546,7 +2355,10 @@ public class Basic {
     public static boolean fileExistsAndIsNonEmpty(String fileName) {
         if (fileName == null)
             return false;
-        File file = new File(fileName);
+        else return fileExistsAndIsNonEmpty(new File(fileName));
+    }
+
+    public static boolean fileExistsAndIsNonEmpty(File file) {
         return file.exists() && file.length() > 0;
     }
 
@@ -2589,39 +2401,6 @@ public class Basic {
     }
 
     /**
-     * skip all characters upto first digit or '-'
-     *
-     * @param token
-     * @return first number   or null
-     */
-    public static String skipToNumber(String token) {
-        int pos = 0;
-        while (pos < token.length()) {
-            if (Character.isDigit(token.charAt(pos)) || token.charAt(pos) == '-')
-                return token.substring(pos);
-            pos++;
-        }
-        return null;
-    }
-
-    /**
-     * gets next long
-     *
-     * @param rand
-     * @param max
-     * @return long
-     */
-    public static long nextLong(Random rand, long max) {
-        if (max <= 0)
-            return 0;
-        else if (max < Integer.MAX_VALUE)
-            return rand.nextInt((int) max);
-        else {
-            return (long) (rand.nextDouble() * max);
-        }
-    }
-
-    /**
      * split a string by the given separator, but honoring quotes around items
      *
      * @param string
@@ -2637,7 +2416,7 @@ public class Basic {
             if (string.charAt(i) == '\"') { // start of quoted item
                 int j = string.indexOf('\"', i + 1);
                 if (j == -1) {
-                    list.add(string.substring(i + 1, string.length()).trim());
+                    list.add(string.substring(i + 1).trim());
                     break;  // unfinished quote, really should throw an exception
                 } else {
                     list.add(string.substring(i + 1, j).trim());
@@ -2658,7 +2437,7 @@ public class Basic {
                 i = j + 1;
             }
         }
-        return list.toArray(new String[list.size()]);
+        return list.toArray(new String[0]);
     }
 
     /**
@@ -2686,9 +2465,7 @@ public class Basic {
     public static int restrictToRange(int min, int max, int value) {
         if (value < min)
             return min;
-        if (value >= max)
-            return max;
-        return value;
+        return Math.min(value, max);
     }
 
     /**
@@ -2702,9 +2479,7 @@ public class Basic {
     public static double restrictToRange(double min, double max, double value) {
         if (value < min)
             return min;
-        if (value >= max)
-            return max;
-        return value;
+        return Math.min(value, max);
     }
 
 
@@ -2813,17 +2588,8 @@ public class Basic {
      * @throws java.io.IOException
      */
     public static void copyFile(File source, File dest) throws IOException {
-        FileChannel sourceChannel = null;
-        FileChannel destChannel = null;
-        try {
-            sourceChannel = new FileInputStream(source).getChannel();
-            destChannel = new FileOutputStream(dest).getChannel();
+        try (FileChannel sourceChannel = new FileInputStream(source).getChannel(); FileChannel destChannel = new FileOutputStream(dest).getChannel()) {
             destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
-        } finally {
-            if (sourceChannel != null)
-                sourceChannel.close();
-            if (destChannel != null)
-                destChannel.close();
         }
     }
 
@@ -2858,43 +2624,9 @@ public class Basic {
      * @throws java.io.IOException
      */
     public static void appendFile(File source, File dest) throws IOException {
-        FileChannel sourceChannel = null;
-        RandomAccessFile raf = null;
-        FileChannel destChannel = null;
-        try {
-            sourceChannel = new FileInputStream(source).getChannel();
-            raf = new RandomAccessFile(dest, "rw");
-            destChannel = raf.getChannel();
+        try (FileChannel sourceChannel = new FileInputStream(source).getChannel(); RandomAccessFile raf = new RandomAccessFile(dest, "rw"); FileChannel destChannel = raf.getChannel()) {
             destChannel.transferFrom(sourceChannel, raf.length(), sourceChannel.size());
-        } finally {
-            if (sourceChannel != null)
-                sourceChannel.close();
-            if (destChannel != null)
-                destChannel.close();
-            if (raf != null)
-                raf.close();
         }
-    }
-
-    /**
-     * copy a file and uncompress if necessary
-     *
-     * @param source
-     * @param dest
-     * @throws java.io.IOException
-     */
-    public static void copyFileUncompressed(File source, File dest) throws IOException {
-        if (Basic.isZIPorGZIPFile(source.getPath())) {
-            try (InputStream ins = Basic.getInputStreamPossiblyZIPorGZIP(source.getPath()); OutputStream outs = new BufferedOutputStream(new FileOutputStream(dest), 8192)) {
-                byte[] buffer = new byte[8192];
-                int len = ins.read(buffer);
-                while (len != -1) {
-                    outs.write(buffer, 0, len);
-                    len = ins.read(buffer);
-                }
-            }
-        } else
-            copyFile(source, dest);
     }
 
     /**
@@ -2932,6 +2664,12 @@ public class Basic {
         } else
             ins = new FileInputStream(file);
         return ins;
+    }
+
+    public static InputStream getInputStreamPossiblyGZIP(InputStream ins, String fileName) throws IOException {
+        if (fileName.toLowerCase().endsWith(".gz")) {
+            return new GZIPInputStream(ins);
+        } else return ins;
     }
 
     /**
@@ -3077,7 +2815,7 @@ public class Basic {
         }
         if (start != -1)
             parts.add(aLine.substring(start));
-        return parts.toArray(new String[parts.size()]);
+        return parts.toArray(new String[0]);
     }
 
     /**
@@ -3114,42 +2852,47 @@ public class Basic {
         return result;
     }
 
-    /**
-     * computes the symmetric different of two hash sets
-     *
-     * @param set1
-     * @param set2
-     * @param <T>
-     * @return symmetric different
-     */
-    public static <T> HashSet<T> symmetricDifference(final HashSet<T> set1, final HashSet<T> set2) {
-        final HashSet<T> result = new HashSet<>();
-        for (T element : set1) {
-            if (!set2.contains(element))
-                result.add(element);
-        }
-        for (T element : set2) {
-            if (!set1.contains(element))
-                result.add(element);
-        }
-        return result;
-    }
 
     /**
-     * computes the symmetric different of two hash sets
+     * computes the intersection different of two hash sets
      *
      * @param set1
      * @param set2
      * @param <T>
      * @return symmetric different
      */
-    public static <T> HashSet<T> intersection(final HashSet<T> set1, final HashSet<T> set2) {
-        final HashSet<T> result = new HashSet<>();
+    public static <T> Collection<T> intersection(final Collection<T> set1, final Collection<T> set2) {
+        final Collection<T> result = new HashSet<>();
         for (T element : set1) {
             if (set2.contains(element))
                 result.add(element);
         }
         return result;
+    }
+
+    public static <T> boolean intersects(Collection<T> a, Collection<T> b) {
+        if (a.size() == 0 || b.size() == 0)
+            return false;
+        for (T element : a) {
+            if (b.contains(element))
+                return true;
+        }
+        return false;
+    }
+
+    public static <T> HashSet<T> union(Collection<T> a, Collection<T> b) {
+        final HashSet<T> union = new HashSet<>(a);
+        union.addAll(b);
+        return union;
+    }
+
+    public static <T> ArrayList<T> difference(Collection<T> a, Collection<T> b) {
+        final ArrayList<T> union = new ArrayList<>();
+        for (T t : a) {
+            if (!b.contains(t))
+                union.add(t);
+        }
+        return union;
     }
 
     /**
@@ -3190,33 +2933,6 @@ public class Basic {
         return true;
     }
 
-    /**
-     * copy an int array to an integer array
-     *
-     * @param array
-     * @return integer array copy
-     */
-    public static Integer[] copyAsIntegerArray(int[] array) {
-        Integer[] result = new Integer[array.length];
-        for (int i = 0; i < array.length; i++)
-            result[i] = array[i];
-        return result;
-    }
-
-    /**
-     * copy an Integer array to an int array
-     *
-     * @param array
-     * @return int array copy
-     */
-    public static int[] copyAsIntArray(Collection<Integer> array) {
-        int[] result = new int[array.size()];
-        int i = 0;
-        for (Integer value : array) {
-            result[i++] = value;
-        }
-        return result;
-    }
 
     /**
      * Finds the value of the given enumeration by name, case-insensitive.
@@ -3229,56 +2945,6 @@ public class Basic {
             }
         }
         return null;
-    }
-
-    /**
-     * returns file with .gz ending if only that exists
-     *
-     * @param file
-     * @return file or file.gz
-     */
-    public static File gzippedIfNecessary(File file) {
-        if (file.exists() || !(new File(file.getPath() + ".gz")).exists())
-            return file;
-        else
-            return new File(file.getPath() + ".gz");
-    }
-
-    /**
-     * determines whether the given string contains the given subword, ignoring case. Uses stupid slow algorithm
-     *
-     * @param string
-     * @param subWord
-     * @return true, if contained
-     */
-    public static boolean containsIgnoringCase(String string, int[] subWord) {
-        int pos = 0;
-        while (pos + subWord.length < string.length()) {
-            int i = 0;
-            for (; i < subWord.length; i++) {
-                if (Character.toLowerCase(string.charAt(pos + i)) != Character.toLowerCase(subWord[i])) {
-                    break;
-                }
-            }
-            if (i == subWord.length)
-                return true;
-            pos++;
-        }
-        return false;
-    }
-
-    /**
-     * gets the file type (based on suffix)
-     *
-     * @param name
-     * @return file type or "Unknown"
-     */
-    public static String getFileType(String name) {
-        int pos = name.lastIndexOf(".");
-        if (pos != 1 && pos < name.length() - 1) {
-            return name.substring(pos + 1).toUpperCase();
-        } else
-            return "Unknown";
     }
 
     /**
@@ -3328,22 +2994,6 @@ public class Basic {
     }
 
     /**
-     * return the lowest power of 2 that is greater or equal to the given number
-     *
-     * @param i
-     * @return next power of 2
-     */
-    public static int nextPowerOf2(int i) {
-        int k = 1;
-        while (k < Integer.MAX_VALUE) {
-            if (k >= i)
-                break;
-            k <<= 1;
-        }
-        return k;
-    }
-
-    /**
      * gets value as binary string, always showing all 64 positions
      *
      * @param value
@@ -3352,24 +3002,11 @@ public class Basic {
     public static String toBinaryString(long value) {
         StringBuilder buf = new StringBuilder();
         for (int shift = 63; shift >= 0; shift--) {
-            buf.append((value & (1l << shift)) >>> shift);
+            buf.append((value & (1L << shift)) >>> shift);
         }
         return buf.toString();
     }
 
-    /**
-     * gets value as binary string, always showing all 64 positions
-     *
-     * @param value
-     * @return binary string
-     */
-    public static String toBinaryString(int value) {
-        StringBuilder buf = new StringBuilder();
-        for (int shift = 31; shift >= 0; shift--) {
-            buf.append((value & (1 << shift)) >>> shift);
-        }
-        return buf.toString();
-    }
 
     /**
      * Returns the path of one File relative to another.
@@ -3403,25 +3040,6 @@ public class Basic {
             result.delete(result.length() - File.separator.length(), result.length());
         }
         return new File(result.toString());
-    }
-
-    /**
-     * returns all trimmed lines in a file, excluding empty lines or lines that start with #
-     *
-     * @param fileName
-     * @return lines
-     * @throws java.io.IOException
-     */
-    public static List<String> getAllLines(String fileName) throws IOException {
-        final List<String> list = new ArrayList<>();
-        FileInputIterator it = new FileInputIterator(fileName);
-        while (it.hasNext()) {
-            String aLine = it.next().trim();
-            if (aLine.length() > 0 && !aLine.startsWith("#"))
-                list.add(aLine);
-        }
-        it.close();
-        return list;
     }
 
     /**
@@ -3776,7 +3394,7 @@ public class Basic {
     }
 
     /**
-     * convert a string with spaces and/or underscores from camel case
+     * convert a string from camel case
      *
      * @param string
      * @return camel case
@@ -3920,16 +3538,13 @@ public class Basic {
      * @return comparator
      */
     public static Comparator<Pair<String, String>> getComparatorDecreasingLengthOfSecond() {
-        return new Comparator<Pair<String, String>>() {
-            @Override
-            public int compare(Pair<String, String> pair1, Pair<String, String> pair2) { // sorting in decreasing order of length
-                if (pair1.getSecond().length() > pair2.getSecond().length())
-                    return -1;
-                else if (pair1.getSecond().length() < pair2.getSecond().length())
-                    return 1;
-                else
-                    return pair1.getFirst().compareTo(pair2.getFirst());
-            }
+        return (pair1, pair2) -> { // sorting in decreasing order of length
+            if (pair1.getSecond().length() > pair2.getSecond().length())
+                return -1;
+            else if (pair1.getSecond().length() < pair2.getSecond().length())
+                return 1;
+            else
+                return pair1.getFirst().compareTo(pair2.getFirst());
         };
     }
 
@@ -4162,24 +3777,6 @@ public class Basic {
     }
 
     /**
-     * capitalizes leading character.
-     *
-     * @param string
-     * @param allOtherLowerCase
-     * @return capitalized string
-     */
-    public static String capitalize(String string, boolean allOtherLowerCase) {
-        switch (string.length()) {
-            case 0:
-                return string;
-            case 1:
-                return string.toUpperCase();
-            default:
-                return Character.toUpperCase(string.charAt(0)) + (allOtherLowerCase ? string.substring(1).toLowerCase() : string.substring(1));
-        }
-    }
-
-    /**
      * get all files listed below the given root directory
      *
      * @param rootDirectory
@@ -4218,8 +3815,128 @@ public class Basic {
         return result;
     }
 
-    public static String toString(Pair pair, String separator) {
+    public static <S, T> String toString(Pair<S, T> pair, String separator) {
         return pair.getFirst().toString() + separator + pair.getSecond().toString();
+    }
+
+    public static String getUniqueName(String name0, Collection<String> names) {
+        int count = 0;
+        String name = name0;
+        while (names.contains(name)) {
+            name = name0 + "-" + (++count);
+        }
+        return name;
+    }
+
+    public static Collection<String> sortSubsetAsContainingSet(ArrayList<String> containingSet, Collection<String> subsetToSort) {
+        final ArrayList<String> sorted = new ArrayList<>();
+        for (String item : containingSet) {
+            if (subsetToSort.contains(item))
+                sorted.add(item);
+        }
+        return sorted;
+    }
+
+    /**
+     * sort a list using the given comparator
+     *
+     * @param list
+     * @param comparator
+     */
+    public static <T> void sort(List<T> list, Comparator<T> comparator) {
+        T[] array = (T[]) list.toArray();
+        Arrays.sort(array, comparator);
+        list.clear();
+        list.addAll(Arrays.asList(array));
+    }
+
+    /**
+     * trim all strings
+     *
+     * @param strings
+     * @return trimmed strings
+     */
+    public static String[] trimAll(String[] strings) {
+        final String[] result = new String[strings.length];
+        for (int i = 0; i < strings.length; i++) {
+            if (strings[i] != null)
+                result[i] = strings[i].trim();
+        }
+        return result;
+    }
+
+    public static String[] toStrings(Object[] values) {
+        final String[] strings = new String[values.length];
+        for (int i = 0; i < values.length; i++) {
+            if (values[i] != null)
+                strings[i] = values[i].toString();
+        }
+        return strings;
+    }
+
+    public static void deleteFileIfExists(String fileName) {
+        final File file = new File(fileName);
+        if (file.exists())
+            file.delete();
+    }
+
+    public static Iterable<Integer> getIterable(int[] values) {
+        return () -> new Iterator<>() {
+            private int i = 0;
+
+            @Override
+            public boolean hasNext() {
+                return i < values.length;
+            }
+
+            @Override
+            public Integer next() {
+                return values[i++];
+            }
+        };
+    }
+
+    public static String[] replaceAll(String[] strings, String regEx, String replacement) {
+        final String[] result = new String[strings.length];
+        for (int i = 0; i < strings.length; i++) {
+            result[i] = strings[i].replaceAll(regEx, replacement);
+        }
+        return result;
+    }
+
+    public static boolean hasPositiveLengthValue(Map<?, String> map) {
+        for (String value : map.values()) {
+            if (value != null && value.length() > 0)
+                return true;
+        }
+        return false;
+    }
+
+    public static Integer[] maxLexRotation(Integer[] numbers) {
+        final int n = numbers.length;
+        if (n == 0)
+            return numbers;
+
+        final Integer[][] array = new Integer[n][];
+        final Integer[] concat = new Integer[2 * numbers.length];
+        System.arraycopy(numbers, 0, concat, 0, n);
+        System.arraycopy(numbers, 0, concat, n, n);
+
+        for (int i = 0; i < n; i++) {
+            array[i] = new Integer[numbers.length];
+            System.arraycopy(concat, i, array[i], 0, n);
+        }
+        Arrays.sort(array, (a, b) -> {
+            for (int i = 0; i < a.length; i++) {
+                if (a[i] > b[i])
+                    return -1;
+                else if (a[i] < b[i])
+                    return 1;
+            }
+            return 0;
+        });
+
+        return array[0];
     }
 }
 

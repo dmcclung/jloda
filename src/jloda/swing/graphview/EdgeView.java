@@ -28,7 +28,7 @@ package jloda.swing.graphview;
 
 import jloda.swing.util.BasicSwing;
 import jloda.swing.util.Geometry;
-import jloda.swing.util.ProgramProperties;
+import jloda.util.ProgramProperties;
 import jloda.util.parse.NexusStreamParser;
 
 import java.awt.*;
@@ -86,7 +86,7 @@ final public class EdgeView extends ViewBase implements Cloneable { //, IEdgeVie
     public static final byte RDIRECTED = 4;
 
     /**
-     * Construct an edge view.
+     * Construct an edge tree.
      */
     public EdgeView() {
         labelLayout = CENTRAL;
@@ -103,7 +103,7 @@ final public class EdgeView extends ViewBase implements Cloneable { //, IEdgeVie
     }
 
     /**
-     * copies the given src edge view
+     * copies the given src edge tree
      *
      * @param src
      */
@@ -121,6 +121,7 @@ final public class EdgeView extends ViewBase implements Cloneable { //, IEdgeVie
             }
         }
         labelLayout = src.getLabelLayout();
+        labelReferencePoint=src.labelReferencePoint;
     }
 
     /**
@@ -187,6 +188,9 @@ final public class EdgeView extends ViewBase implements Cloneable { //, IEdgeVie
      * @param wp Point in device coordiantes
      */
     public void draw2(Graphics2D gc, Point vp, Point wp, Transform trans, boolean hilited) {
+        if (getLineWidth() == 0)
+            return;
+
         if (fgColor != null) {
             if (hilited) {// draw edge highlighting first
                 if (fgColor.equals(ProgramProperties.SELECTION_COLOR))
@@ -264,6 +268,9 @@ final public class EdgeView extends ViewBase implements Cloneable { //, IEdgeVie
      * @param wp Point in device coordinates
      */
     public void draw(Graphics2D gc, Point vp, Point wp, Transform trans, boolean hilited) {
+        if (getLineWidth() == 0)
+            return;
+
         if (hilited) {// draw edge highlighting first
             gc.setStroke(HEAVY_STROKE);
 
@@ -509,8 +516,7 @@ final public class EdgeView extends ViewBase implements Cloneable { //, IEdgeVie
      */
     public boolean hitEdge(Point vp, Point wp, Transform trans, int x, int y, int i) {
         if (shape == STRAIGHT_EDGE || getInternalPoints() == null || getInternalPoints().size() == 0) {
-            if (Geometry.hitSegment(vp, wp, x, y, i))
-                return true;
+            return Geometry.hitSegment(vp, wp, x, y, i);
         } else if (shape == ROUNDED_EDGE && getInternalPoints().size() == 1) {
             final Point vp1 = trans.w2d(getInternalPoints().get(0));
             final int dist = (int) trans.w2d(ROUNDED_EDGE_INCREMENT, 0).getX() - (int) trans.w2d(0, 0).getX();
@@ -559,8 +565,7 @@ final public class EdgeView extends ViewBase implements Cloneable { //, IEdgeVie
             if (arc.contains(x, y))
                 return true;
 
-            if (Geometry.hitSegment(lineStart, wp, x, y, i))
-                return true;
+            return Geometry.hitSegment(lineStart, wp, x, y, i);
         } else // some internal points are given
         {
             Point prev = vp;
@@ -570,10 +575,8 @@ final public class EdgeView extends ViewBase implements Cloneable { //, IEdgeVie
                     return true;
                 prev = apt;
             }
-            if (Geometry.hitSegment(prev, wp, x, y, i))
-                return true;
+            return Geometry.hitSegment(prev, wp, x, y, i);
         }
-        return false;
     }
 
     /**
@@ -949,7 +952,7 @@ final public class EdgeView extends ViewBase implements Cloneable { //, IEdgeVie
 
 
     /**
-     * writes this edge view. Include internal points
+     * writes this edge tree. Include internal points
      *
      * @param w
      * @param previousEV if not null, only write those fields that differ from the values in previousNV
@@ -960,7 +963,7 @@ final public class EdgeView extends ViewBase implements Cloneable { //, IEdgeVie
     }
 
     /**
-     * gets a string representation of this node view, including internal points
+     * gets a string representation of this node tree, including internal points
      *
      * @return string representation
      */
@@ -969,7 +972,7 @@ final public class EdgeView extends ViewBase implements Cloneable { //, IEdgeVie
     }
 
     /**
-     * gets a string representation of this node view
+     * gets a string representation of this node tree
      *
      * @param withInternalPoints show internal points as well?
      * @return string representation
@@ -979,7 +982,7 @@ final public class EdgeView extends ViewBase implements Cloneable { //, IEdgeVie
     }
 
     /**
-     * gets a string representation of this edge view
+     * gets a string representation of this edge tree
      *
      * @param previousEV if not null, only write those fields that differ from the values in previousNV
      * @return string representation
@@ -1060,7 +1063,7 @@ final public class EdgeView extends ViewBase implements Cloneable { //, IEdgeVie
     }
 
     /**
-     * reads a edge view from a line
+     * reads a edge tree from a line
      *
      * @param tokens
      * @param prevEV this must be !=null, for example can be set to graphView.defaultEdgeView

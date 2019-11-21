@@ -30,7 +30,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import javafx.stage.Stage;
 import jloda.fx.util.ClosingLastDocument;
-import jloda.fx.util.ProgramPropertiesFX;
+import jloda.util.ProgramProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -87,7 +87,7 @@ public class MainWindowManager {
     public void addMainWindow(IMainWindow mainWindow) {
         mainWindows.add(mainWindow);
         mainWindows2AdditionalWindows.put(mainWindow, new ArrayList<>());
-        changed.set(changed.get() + 1);
+        fireChanged();
     }
 
     /**
@@ -101,6 +101,7 @@ public class MainWindowManager {
             if (MainWindowManager.getInstance().size() == 1) {
                 if (!ClosingLastDocument.apply(mainWindow.getStage())) {
                     if (!mainWindow.isEmpty()) {
+                        mainWindow.getStage().close();
                         final IMainWindow newWindow = mainWindow.createNew();
                         final WindowGeometry windowGeometry = new WindowGeometry(mainWindow.getStage());
                         newWindow.show(null, windowGeometry.getX(), windowGeometry.getY(), windowGeometry.getWidth(), windowGeometry.getHeight());
@@ -109,23 +110,22 @@ public class MainWindowManager {
                 }
             }
         }
-        ProgramPropertiesFX.put("WindowGeometry", (new WindowGeometry(mainWindow.getStage())).toString());
-        mainWindow.getStage().close();
+        ProgramProperties.put("WindowGeometry", (new WindowGeometry(mainWindow.getStage())).toString());
+        // mainWindow.getStage().close();
 
         mainWindow.close();
         mainWindows.remove(mainWindow);
         closeAndRemoveAuxiliaryWindows(mainWindow);
-        changed.set(changed.get() + 1);
+        fireChanged();
 
         if (mainWindows.size() == 0) {
+            ProgramProperties.store();
             Platform.exit();
+            System.exit(0);
         }
 
         if (lastFocusedMainWindow == mainWindow) {
-            if (mainWindows.size() > 0)
                 lastFocusedMainWindow = mainWindows.get(mainWindows.size() - 1);
-            else
-                lastFocusedMainWindow = null;
         }
         return true;
     }
@@ -143,11 +143,15 @@ public class MainWindowManager {
                     windowGeometry.setX(windowGeometry.getX() + 50);
                     windowGeometry.setY(windowGeometry.getY() + 50);
                 } else {
-                    windowGeometry.setFromString(ProgramPropertiesFX.get("WindowGeometry", "50 50 800 800"));
+                    windowGeometry.setFromString(ProgramProperties.get("WindowGeometry", "50 50 800 800"));
                 }
                 final IMainWindow newWindow = getMainWindow(0).createNew();
-                newWindow.show(null, windowGeometry.getX(), windowGeometry.getY(), windowGeometry.getWidth(), windowGeometry.getHeight());
                 addMainWindow(newWindow);
+                newWindow.show(new Stage(), windowGeometry.getX(), windowGeometry.getY(), windowGeometry.getWidth(), windowGeometry.getHeight());
+                newWindow.getStage().focusedProperty().addListener((c, o, n) -> {
+                    if (n)
+                        setLastFocusedMainWindow(newWindow);
+                });
                 return newWindow;
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
@@ -161,7 +165,7 @@ public class MainWindowManager {
 
     public void addAuxiliaryWindow(IMainWindow mainWindow, Stage stage) {
         mainWindows2AdditionalWindows.get(mainWindow).add(stage);
-        changed.set(changed.get() + 1);
+        fireChanged();
     }
 
     public void closeAndRemoveAuxiliaryWindows(IMainWindow mainWindow) {
@@ -175,12 +179,16 @@ public class MainWindowManager {
     public void removeAuxiliaryWindow(IMainWindow mainWindow, Stage stage) {
         if (mainWindows2AdditionalWindows.containsKey(mainWindow)) {
             mainWindows2AdditionalWindows.get(mainWindow).remove(stage);
-            changed.set(changed.get() + 1);
+            fireChanged();
         }
     }
 
     public ReadOnlyLongProperty changedProperty() {
         return changed;
+    }
+
+    public void fireChanged() {
+        changed.set(changed.get() + 1);
     }
 
     public ObservableList<IMainWindow> getMainWindows() {
@@ -192,7 +200,12 @@ public class MainWindowManager {
     }
 
     public IMainWindow getLastFocusedMainWindow() {
-        return lastFocusedMainWindow;
+        if (lastFocusedMainWindow != null)
+            return lastFocusedMainWindow;
+        else if (mainWindows.size() > 0)
+            return mainWindows.get(0);
+        else
+            return null;
     }
 
     public void setLastFocusedMainWindow(IMainWindow lastFocusedMainWindow) {

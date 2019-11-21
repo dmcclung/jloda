@@ -29,7 +29,7 @@ import java.util.NoSuchElementException;
  */
 
 public class EdgeArray<T> extends GraphBase implements EdgeAssociation<T> {
-    private T data[];
+    private T[] data;
     private boolean isClear = true;
 
     /**
@@ -175,7 +175,7 @@ public class EdgeArray<T> extends GraphBase implements EdgeAssociation<T> {
      * @return iterator
      */
     public Iterable<T> values() {
-        return () -> new Iterator<T>() {
+        return () -> new Iterator<>() {
             private Edge e = getOwner().getFirstEdge();
 
             {

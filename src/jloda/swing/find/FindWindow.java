@@ -19,8 +19,8 @@
 
 package jloda.swing.find;
 
-import jloda.swing.util.ProgramProperties;
 import jloda.swing.util.RememberingComboBox;
+import jloda.util.ProgramProperties;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,7 +45,6 @@ public class FindWindow extends JFrame implements IFindDialog {
     final JComboBox targetCBox = new JComboBox();
     final SearchActions actions;
 
-    private final int WIDTH_FIND = 600;
     private final int HEIGHT_FIND = 250;
     private final int HEIGHT_FIND_REPLACE = 330;
 
@@ -64,10 +63,10 @@ public class FindWindow extends JFrame implements IFindDialog {
 
         this.setLocationRelativeTo(parent);
         this.setTitle(title);
-        if (ProgramProperties.getProgramIcon() != null)
-            this.setIconImage(ProgramProperties.getProgramIcon().getImage());
+        this.setIconImages(ProgramProperties.getProgramIconImages());
 
         int height = searchManager.getShowReplace() ? HEIGHT_FIND_REPLACE : HEIGHT_FIND;
+        int WIDTH_FIND = 600;
         this.setSize(WIDTH_FIND, height);
 
         findCBox = new RememberingComboBox();
@@ -266,14 +265,12 @@ public class FindWindow extends JFrame implements IFindDialog {
                 parent2active.put(searcher.getParent(), searcher);
         }
 
-        targetCBox.addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent event) {
-                if (event.getStateChange() == ItemEvent.SELECTED) {
-                    ISearcher searcher = ((SearcherItem) event.getItem()).getSearcher();
-                    searchManager.setSearcher(searcher);
-                    if (searcher.getParent() != null)
-                        parent2active.put(searcher.getParent(), searcher);
-                }
+        targetCBox.addItemListener(event -> {
+            if (event.getStateChange() == ItemEvent.SELECTED) {
+                ISearcher searcher = ((SearcherItem) event.getItem()).getSearcher();
+                searchManager.setSearcher(searcher);
+                if (searcher.getParent() != null)
+                    parent2active.put(searcher.getParent(), searcher);
             }
         });
     }
@@ -314,7 +311,7 @@ public class FindWindow extends JFrame implements IFindDialog {
         }
     }
 
-    class SearcherItem extends JButton {
+    static class SearcherItem extends JButton {
         final ISearcher searcher;
 
         SearcherItem(ISearcher searcher) {

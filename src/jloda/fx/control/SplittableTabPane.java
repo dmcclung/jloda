@@ -38,6 +38,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import jloda.util.Basic;
+import jloda.util.ProgramProperties;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -421,40 +422,32 @@ public class SplittableTabPane extends Pane {
 
             final MenuItem closeOthers = new MenuItem("Close Others");
             closeOthers.setOnAction((e) -> {
-                final ArrayList<Tab> toClose = new ArrayList<>();
                 for (Tab aTab : tabPane.getTabs()) {
                     if (aTab != tab && aTab.isClosable())
-                        toClose.add(aTab);
+                        Platform.runLater(() -> tabs.remove(aTab));
                 }
-                tabs.removeAll(toClose);
             });
             closeOthers.disableProperty().bind(Bindings.size(tabPane.getTabs()).lessThan(2).or(tab.closableProperty().not()));
             menuItems.add(closeOthers);
 
             final MenuItem closeAll = new MenuItem("Close All");
             closeAll.setOnAction((e) -> {
-                final ArrayList<Tab> toClose = new ArrayList<>();
                 for (Tab aTab : tabPane.getTabs()) {
                     if (aTab.isClosable())
-                        toClose.add(aTab);
+                        Platform.runLater(() -> tabs.remove(aTab));
                 }
-                tabs.removeAll(toClose);
             });
             closeAll.disableProperty().bind(tab.closableProperty().not());
             menuItems.add(closeAll);
 
             tab.setClosable(true);
-            tab.setOnCloseRequest((e) -> {
-                close.getOnAction().handle(null);
-            });
+            tab.setOnCloseRequest((e) -> close.getOnAction().handle(null));
             menuItems.add(new SeparatorMenuItem());
         }
 
         if (isAllowUndock()) {
             final MenuItem redock = new MenuItem("Redock");
-            redock.setOnAction((e) -> {
-                moveTab(tab, null, getFocusedTabPane());
-            });
+            redock.setOnAction((e) -> moveTab(tab, null, getFocusedTabPane()));
             // we don't show the redock menu item because the undocked window doesn't have a tab
 
             final MenuItem undock = new MenuItem("Undock");
@@ -496,9 +489,7 @@ public class SplittableTabPane extends Pane {
         menuItems.add(new SeparatorMenuItem());
 
         final MenuItem changeSplitOrientation = new MenuItem("Change Split Orientation");
-        changeSplitOrientation.setOnAction((e) -> {
-            splitPane.setOrientation(splitPane.getOrientation() == Orientation.VERTICAL ? Orientation.HORIZONTAL : Orientation.VERTICAL);
-        });
+        changeSplitOrientation.setOnAction((e) -> splitPane.setOrientation(splitPane.getOrientation() == Orientation.VERTICAL ? Orientation.HORIZONTAL : Orientation.VERTICAL));
         menuItems.add(changeSplitOrientation);
 
         final ArrayList<MenuItem> existingItems;
@@ -667,6 +658,7 @@ public class SplittableTabPane extends Pane {
             stage.setTitle(((Labeled) tab.getGraphic()).getText());
         else
             stage.setTitle("Untitled");
+        stage.getIcons().addAll(ProgramProperties.getProgramIconsFX());
 
         stage.setScene(new Scene(root, width, height));
         stage.sizeToScene();
@@ -675,7 +667,7 @@ public class SplittableTabPane extends Pane {
         return new AuxiliaryWindow(stage, tab);
     }
 
-    private class AuxiliaryWindow {
+    private static class AuxiliaryWindow {
         final private Stage stage;
         final private Tab tab;
 
